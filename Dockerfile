@@ -82,7 +82,7 @@ WORKDIR /home/pitosalas
 RUN mkdir -p /home/pitosalas/.local/bin
 RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-RUN --mount=type=ssh \
+RUN --mount=type=ssh,uid=1000,gid=1000 \
     git clone git@github.com:campusrover/rosutils.git /home/pitosalas/rosutils && \
     mkdir -p /home/pitosalas/ros2_ws/src && \
     cd /home/pitosalas/ros2_ws/src && \
