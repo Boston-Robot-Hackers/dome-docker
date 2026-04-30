@@ -75,14 +75,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-kilted-xacro \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /bin/bash pitosalas
-USER pitosalas
+RUN useradd -m -s /bin/bash pitosalas && \
+    mkdir -p /home/pitosalas/.local/bin
 WORKDIR /home/pitosalas
 
-RUN mkdir -p /home/pitosalas/.local/bin
-RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+RUN mkdir -p -m 0700 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
-RUN --mount=type=ssh,uid=1000,gid=1000 \
+RUN --mount=type=ssh \
     git clone git@github.com:campusrover/rosutils.git /home/pitosalas/rosutils && \
     mkdir -p /home/pitosalas/ros2_ws/src && \
     cd /home/pitosalas/ros2_ws/src && \
@@ -98,7 +97,8 @@ RUN --mount=type=ssh,uid=1000,gid=1000 \
     git clone https://github.com/micro-ROS/micro-ROS-Agent.git && \
     git clone https://github.com/micro-ROS/micro_ros_msgs.git && \
     git clone https://github.com/christianrauch/camera_ros.git && \
-    git clone https://github.com/slgrobotics/depthai_rospi.git
+    git clone https://github.com/slgrobotics/depthai_rospi.git && \
+    chown -R pitosalas:pitosalas /home/pitosalas
 
 USER root
 RUN rosdep init || true

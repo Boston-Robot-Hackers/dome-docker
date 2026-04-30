@@ -54,7 +54,7 @@ DOCKER_BUILDKIT=1 docker buildx build \
   -t dome-docker:dome-kilted .
 ```
 
-`--ssh default=$SSH_AUTH_SOCK` is important on macOS. It forwards your Mac SSH agent into the BuildKit step without copying private keys into the image. The Dockerfile mounts that forwarded SSH socket with `uid=1000,gid=1000` because the clone step runs as the non-root `pitosalas` user.
+`--ssh default=$SSH_AUTH_SOCK` is important on macOS. It forwards your Mac SSH agent into the BuildKit step without copying private keys into the image. The Dockerfile runs private `git clone` commands as root using the forwarded SSH socket, then changes ownership of `/home/pitosalas` back to the non-root `pitosalas` user. This avoids Docker Desktop SSH socket permission issues during build.
 
 ## Builder Troubleshooting
 
