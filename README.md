@@ -88,6 +88,16 @@ docker context use desktop-linux
 docker buildx use desktop-linux
 ```
 
+
+## Rosdep Notes
+
+During image build, `rosdep install` runs as root because it may need to install apt packages. The Dockerfile currently skips two rosdep keys while we sort out Kilted compatibility:
+
+- `ament_python` from `oak_roboflow`
+- `gazebo_ros_pkgs` from `linorobot2_gazebo`
+
+Those packages remain in the source tree, but their unresolved rosdep keys do not block the first image build.
+
 ## Run
 
 ```sh

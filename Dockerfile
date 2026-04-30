@@ -23,10 +23,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     ninja-build \
     openssh-client \
+    clang-format \
+    python3-click \
     python3-colcon-common-extensions \
+    python3-docstring-parser \
     python3-opencv \
+    python3-osrf-pycommon \
     python3-pip \
+    python3-prompt-toolkit \
     python3-rosdep \
+    python3-setproctitle \
     python3-venv \
     python3-yaml \
     ripgrep \
@@ -36,6 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-kilted-ament-cmake-clang-format \
+    ros-kilted-ament-cmake-mypy \
+    ros-kilted-ament-cmake-pyflakes \
     ros-kilted-camera-info-manager \
     ros-kilted-camera-ros \
     ros-kilted-compressed-image-transport \
@@ -102,12 +111,14 @@ RUN --mount=type=ssh \
 
 USER root
 RUN rosdep init || true
+RUN rosdep update && \
+    cd /home/pitosalas/ros2_ws && \
+    rosdep install --from-paths src --ignore-src -r -y --skip-keys="ament_python gazebo_ros_pkgs" && \
+    chown -R pitosalas:pitosalas /home/pitosalas
 USER pitosalas
 
 RUN source /opt/ros/kilted/setup.bash && \
-    rosdep update && \
     cd /home/pitosalas/ros2_ws && \
-    rosdep install --from-paths src --ignore-src -r -y && \
     colcon build --symlink-install
 
 RUN echo 'source /opt/ros/kilted/setup.bash' >> /home/pitosalas/.bashrc && \
