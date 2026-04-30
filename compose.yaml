@@ -1,0 +1,26 @@
+services:
+  dome:
+    build:
+      context: .
+      ssh:
+        - default
+    image: pidockerexperiment:dome-kilted
+    container_name: dome-kilted
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      DISPLAY: ${DISPLAY:-}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./runtime-data/ros:/home/pitosalas/.ros
+      - ./runtime-data/control:/home/pitosalas/.control
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+    devices:
+      - /dev/dma_heap:/dev/dma_heap
+    command: bash

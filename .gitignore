@@ -1,0 +1,32 @@
+# Local/generated inventory from the source microSD
+inventory/
+
+# Runtime state mounted by compose
+runtime-data/
+host-files/
+
+# Local editor and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets and local environment files
+.env
+*.env
+*.pem
+*.key
+id_*
+*_rsa
+*_ed25519
+
+# Build artifacts and logs
+*.log
+build/
+install/
+log/
+.cache/
+__pycache__/
+*.pyc
+
+# Codex/session-local files
+.codex
