@@ -111,7 +111,11 @@ RUN --mount=type=ssh \
 
 USER root
 RUN rosdep init || true
-RUN rosdep update && \
+RUN find /home/pitosalas/ros2_ws/src -type d \
+      \( -name build -o -name install -o -name log -o -name prefix_override -o -name __pycache__ -o -name .pytest_cache \) \
+      -prune -exec rm -rf {} + && \
+    find /home/pitosalas/ros2_ws/src -type d -name "*.egg-info" -prune -exec rm -rf {} + && \
+    rosdep update && \
     cd /home/pitosalas/ros2_ws && \
     rosdep install --from-paths src --ignore-src -r -y --skip-keys="ament_python gazebo_ros_pkgs" && \
     chown -R pitosalas:pitosalas /home/pitosalas

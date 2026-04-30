@@ -89,6 +89,11 @@ docker buildx use desktop-linux
 ```
 
 
+
+## Source Tree Cleanup
+
+Before `rosdep` and `colcon build`, the Dockerfile removes common generated directories from cloned source trees, including `build`, `install`, `log`, `prefix_override`, `__pycache__`, `.pytest_cache`, and `*.egg-info`. This avoids setuptools flat-layout discovery failures when old build artifacts exist in a repository.
+
 ## Rosdep Notes
 
 During image build, `rosdep install` runs as root because it may need to install apt packages. The Dockerfile currently skips two rosdep keys while we sort out Kilted compatibility:
