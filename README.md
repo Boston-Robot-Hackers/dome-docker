@@ -90,6 +90,11 @@ docker buildx use desktop-linux
 
 
 
+
+## Package Build Patches
+
+The Dockerfile currently applies a small in-image patch to `oak_roboflow/setup.py` so setuptools explicitly packages only `oak_roboflow`. Without this, setuptools may auto-discover generated folders such as `prefix_override` and fail with a flat-layout package discovery error.
+
 ## Source Tree Cleanup
 
 Before `rosdep` and `colcon build`, the Dockerfile removes common generated directories from cloned source trees, including `build`, `install`, `log`, `prefix_override`, `__pycache__`, `.pytest_cache`, and `*.egg-info`. This avoids setuptools flat-layout discovery failures when old build artifacts exist in a repository.

@@ -111,6 +111,8 @@ RUN --mount=type=ssh \
 
 USER root
 RUN rosdep init || true
+RUN python3 -c 'from pathlib import Path; p=Path("/home/pitosalas/ros2_ws/src/oak_roboflow/setup.py"); s=p.read_text(); s=s.replace("from setuptools import setup", "from setuptools import setup, find_packages"); s=s.replace("setup(\n    data_files=", "setup(\n    packages=find_packages(include=[\"oak_roboflow\", \"oak_roboflow.*\"]),\n    data_files="); p.write_text(s)'
+
 RUN find /home/pitosalas/ros2_ws/src -type d \
       \( -name build -o -name install -o -name log -o -name prefix_override -o -name __pycache__ -o -name .pytest_cache \) \
       -prune -exec rm -rf {} + && \
