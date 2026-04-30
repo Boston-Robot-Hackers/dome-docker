@@ -166,7 +166,6 @@ git clone git@github.com:Boston-Robot-Hackers/explore.git /home/pitosalas/ros2_w
 git clone git@github.com:Boston-Robot-Hackers/oak-roboflow.git /home/pitosalas/ros2_ws/src/oak_roboflow
 git clone https://github.com/christianrauch/camera_ros.git /home/pitosalas/ros2_ws/src/camera_ros
 git clone git@github.com:campusrover/dome.git /home/pitosalas/ros2_ws/src/dome
-git clone https://github.com/slgrobotics/depthai_rospi.git /home/pitosalas/ros2_ws/src/depthai_rospi
 git clone https://github.com/dfki-ric/better_launch.git /home/pitosalas/ros2_ws/src/better_launch
 git clone https://github.com/micro-ROS/micro_ros_msgs.git /home/pitosalas/ros2_ws/src/micro_ros_msgs
 git clone git@github.com:Boston-Robot-Hackers/ros2diag.git /home/pitosalas/ros2_ws/src/ros2diag

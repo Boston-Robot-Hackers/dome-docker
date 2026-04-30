@@ -28,7 +28,6 @@ Legend for review:
     - `oak_roboflow`
     - `camera_ros`
     - `dome`
-    - `depthai_rospi`
     - `better_launch`
     - `micro_ros_msgs`
     - `ros2diag`
@@ -50,7 +49,6 @@ Legend for review:
   - Likely test/experiment workspace unless you mark it needed.
 
 - `[-]` `/home/pitosalas/install` and `/home/pitosalas/build`
-  - Looks like colcon build/install output for `dome` and `depthai_rospi`.
   - Candidate only as evidence of build process, not content to copy directly.
 
 ## Git Repositories To Recreate By Clone
@@ -76,7 +74,6 @@ ROS workspace repositories:
 - `[x]` `git@github.com:Boston-Robot-Hackers/oak-roboflow.git` -> `/home/pitosalas/ros2_ws/src/oak_roboflow`
 - `[x]` `https://github.com/christianrauch/camera_ros.git` -> `/home/pitosalas/ros2_ws/src/camera_ros`
 - `[x]` `git@github.com:campusrover/dome.git` -> `/home/pitosalas/ros2_ws/src/dome`
-- `[x]` `https://github.com/slgrobotics/depthai_rospi.git` -> `/home/pitosalas/ros2_ws/src/depthai_rospi`
 - `[x]` `https://github.com/dfki-ric/better_launch.git` -> `/home/pitosalas/ros2_ws/src/better_launch`
 - `[x]` `https://github.com/micro-ROS/micro_ros_msgs.git` -> `/home/pitosalas/ros2_ws/src/micro_ros_msgs`
 - `[x]` `git@github.com:Boston-Robot-Hackers/ros2diag.git` -> `/home/pitosalas/ros2_ws/src/ros2diag`

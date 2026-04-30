@@ -106,7 +106,6 @@ RUN --mount=type=ssh \
     git clone https://github.com/micro-ROS/micro-ROS-Agent.git && \
     git clone https://github.com/micro-ROS/micro_ros_msgs.git && \
     git clone https://github.com/christianrauch/camera_ros.git && \
-    git clone https://github.com/slgrobotics/depthai_rospi.git && \
     chown -R pitosalas:pitosalas /home/pitosalas
 
 USER root
