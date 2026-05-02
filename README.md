@@ -103,6 +103,17 @@ If no key is loaded:
 ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ```
 
+## Build On Raspberry Pi
+
+The Docker build clones private GitHub repositories. On the Pi, use the helper:
+
+```sh
+./pi-build.sh
+```
+
+If the Pi's GitHub key is not authorized yet, the helper prints the public key
+to add to GitHub. Add it, then rerun `./pi-build.sh`.
+
 ## Run
 
 On the Pi:

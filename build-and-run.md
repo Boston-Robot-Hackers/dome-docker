@@ -7,18 +7,14 @@ use `microsd-card-build.md`.
 
 ## Build With SSH Forwarding
 
-Start an SSH agent on the build machine and load a key that can read the private repos:
+The Docker build clones private GitHub repositories. On the Pi, use the helper:
 
 ```sh
-ssh-add -l
-ssh-add ~/.ssh/id_ed25519
+./pi-build.sh
 ```
 
-Build with Docker Compose:
-
-```sh
-DOCKER_BUILDKIT=1 docker compose build --ssh default
-```
+If the Pi's GitHub key is not authorized yet, the helper prints the public key
+to add to GitHub. Add it, then rerun `./pi-build.sh`.
 
 Or build directly:
 

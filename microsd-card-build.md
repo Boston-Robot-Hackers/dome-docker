@@ -178,17 +178,14 @@ Log back in after reboot. Docker group membership may require this new login.
 
 ## 8. Build The Docker Image
 
-Confirm GitHub SSH access for private repositories:
+The Docker build clones private GitHub repositories. On the Pi, use the helper:
 
 ```sh
-ssh -T git@github.com
+./pi-build.sh
 ```
 
-Build with Docker Compose:
-
-```sh
-DOCKER_BUILDKIT=1 docker compose build --ssh default
-```
+If the Pi's GitHub key is not authorized yet, the helper prints the public key
+to add to GitHub. Add it, then rerun `./pi-build.sh`.
 
 If building on a Mac for Raspberry Pi arm64 instead of building on the Pi:
 
