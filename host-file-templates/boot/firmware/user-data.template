@@ -1,0 +1,18 @@
+#cloud-config
+hostname: dome
+manage_etc_hosts: true
+packages:
+  - avahi-daemon
+apt:
+  conf: |
+    Acquire {
+      Check-Date "false";
+    };
+
+users:
+  - name: pitosalas
+    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+    shell: /bin/bash
+    lock_passwd: false
+    # Replace with a reviewed password hash before writing this to /boot/firmware.
+    passwd: "REPLACE_WITH_PASSWORD_HASH"

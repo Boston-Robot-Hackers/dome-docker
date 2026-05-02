@@ -33,7 +33,39 @@ For automation, set the password non-interactively only in a secured local provi
 
 Review before applying because interface names, Wi-Fi credentials, and static IP choices may be host-specific.
 
-## 4. Install Host Packages
+## 4. Boot Firmware Setup
+
+Raspberry Pi boot firmware settings belong on the host, not in the Docker image.
+The current microSD has relevant settings under `/boot/firmware`:
+
+- `config.txt`
+  - Enables I2C, SPI, UART, camera autodetect, two IMX219 camera overlays, USB current, and the ReSpeaker 2-Mic overlay.
+- `cmdline.txt`
+  - Sets serial console, root filesystem, root wait, clock fix, and Wi-Fi regulatory domain.
+- `user-data`
+  - Cloud-init user setup. Contains password hash material and must not be committed directly.
+- `network-config`
+  - Cloud-init Wi-Fi setup. Contains Wi-Fi credentials and must not be committed directly.
+
+Sanitized templates live under:
+
+- `host-file-templates/boot/firmware/config.txt`
+- `host-file-templates/boot/firmware/cmdline.txt`
+- `host-file-templates/boot/firmware/user-data.template`
+- `host-file-templates/boot/firmware/network-config.template`
+
+For a real host restore, copy reviewed files into ignored `host-files/boot/firmware/`
+and run:
+
+```sh
+sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+```
+
+The setup script only copies `config.txt` and `cmdline.txt` automatically. Review
+cloud-init `user-data` and `network-config` manually because they may contain
+password hashes or Wi-Fi credentials.
+
+## 5. Install Host Packages
 
 Minimum host-side candidates:
 
@@ -55,7 +87,7 @@ sudo apt install -y \
 
 Install Docker using the official Docker apt repository unless Ubuntu's packaged Docker is preferred.
 
-## 5. Docker Setup
+## 6. Docker Setup
 
 - Install Docker Engine.
 - Enable and start Docker.
@@ -69,7 +101,7 @@ sudo systemctl start docker
 sudo usermod -aG docker pitosalas
 ```
 
-## 6. Device And Udev Setup
+## 7. Device And Udev Setup
 
 Custom udev rules found on current microSD:
 
@@ -109,7 +141,7 @@ Camera access may also require passing:
 - `/dev/v4l-subdev*`
 - `/dev/dma_heap`
 
-## 7. Host Services
+## 8. Host Services
 
 Current candidates:
 
@@ -120,7 +152,7 @@ Current candidates:
 
 These are host-level services, not normal Dockerfile content.
 
-## 8. User Shell Setup
+## 9. User Shell Setup
 
 Review and restore relevant user startup files:
 
@@ -135,7 +167,7 @@ Split responsibilities:
 - Host shell setup should configure Docker/host conveniences.
 - Container shell setup should source ROS Kilted and workspace overlays.
 
-## 9. Files To Mount Or Copy From Host
+## 10. Files To Mount Or Copy From Host
 
 Candidates:
 

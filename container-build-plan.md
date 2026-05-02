@@ -41,7 +41,7 @@ apt-get install -y \
 
 ## 2. ROS Kilted Packages
 
-Verified key Kilted packages are listed in `ros-kilted-package-verification.md`.
+Verified key Kilted packages are listed in `archive/ros-kilted-package-verification.md`.
 
 Candidate package group:
 

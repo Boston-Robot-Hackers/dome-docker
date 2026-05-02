@@ -4,6 +4,7 @@ inventory/
 # Runtime state mounted by compose
 runtime-data/
 host-files/
+local-cloud-init/
 
 # Local editor and OS files
 .DS_Store

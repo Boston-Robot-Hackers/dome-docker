@@ -20,8 +20,11 @@ Target container:
 - `Dockerfile` builds the ROS 2 Kilted image.
 - `compose.yaml` runs the container with host networking and broad device access for the first working draft.
 - `docker-entrypoint.sh` sources ROS and workspace overlays.
+- `microsd-card-build.md` is the end-to-end runbook for building a new Raspberry Pi microSD card from a Mac.
+- `mac-prebuilt-microsd.md` documents the Mac-prebuilt image plus cloud-init first-boot path.
 - `build-and-run.md` has build/run command notes.
 - `*-plan.md` files capture design notes and candidate decisions.
+- `archive/` contains first-pass research notes that are no longer part of the normal workflow.
 
 ## Build On Apple Silicon Mac
 
@@ -147,6 +150,17 @@ Default user provisioning:
 ```sh
 sudo PITOSALAS_PASSWORD='new-password' ./host-setup.sh
 ```
+
+Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.
+Review them before use. To restore reviewed `config.txt` and `cmdline.txt` on a
+Pi, copy them into ignored `host-files/boot/firmware/` and run:
+
+```sh
+sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+```
+
+Do not commit real `user-data` or `network-config` files with password hashes or
+Wi-Fi credentials.
 
 ## SSH Repositories
 

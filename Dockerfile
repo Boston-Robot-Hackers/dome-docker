@@ -85,14 +85,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -s /bin/bash pitosalas && \
-    mkdir -p /home/pitosalas/.local/bin
+    mkdir -p \
+      /home/pitosalas/.local/bin \
+      /home/pitosalas/.ros/camera_info \
+      /home/pitosalas/.control/maps \
+      /home/pitosalas/.control/logs \
+      /home/pitosalas/ros2_ws/src \
+      /home/pitosalas/uros_ws/src && \
+    chown -R pitosalas:pitosalas /home/pitosalas
 WORKDIR /home/pitosalas
 
 RUN mkdir -p -m 0700 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 RUN --mount=type=ssh \
     git clone git@github.com:campusrover/rosutils.git /home/pitosalas/rosutils && \
-    mkdir -p /home/pitosalas/ros2_ws/src && \
+    git clone https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git /home/pitosalas/seeed-linux-dtoverlays && \
+    git clone https://github.com/raspberrypi/libcamera-apps.git /home/pitosalas/libcamera-apps && \
+    git clone https://github.com/pitosalas/linorobot2_hardware.git /home/pitosalas/linorobot2_hardware && \
     cd /home/pitosalas/ros2_ws/src && \
     git clone git@github.com:campusrover/dome.git && \
     git clone git@github.com:pitosalas/linorobot2.git && \
@@ -106,6 +115,9 @@ RUN --mount=type=ssh \
     git clone https://github.com/micro-ROS/micro-ROS-Agent.git && \
     git clone https://github.com/micro-ROS/micro_ros_msgs.git && \
     git clone https://github.com/christianrauch/camera_ros.git && \
+    cd /home/pitosalas/uros_ws/src && \
+    git clone https://github.com/micro-ROS/micro-ROS-Agent.git && \
+    git clone https://github.com/micro-ROS/micro_ros_msgs.git && \
     chown -R pitosalas:pitosalas /home/pitosalas
 
 USER root

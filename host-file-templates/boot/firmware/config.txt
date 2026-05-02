@@ -1,0 +1,45 @@
+[all]
+arm_64bit=1
+kernel=vmlinuz
+cmdline=cmdline.txt
+initramfs initrd.img followkernel
+
+# GPIO header interfaces needed by the robot hardware.
+dtparam=audio=on
+dtparam=i2c_arm=on
+dtparam=spi=on
+
+disable_overscan=1
+
+# Full KMS graphics and serial console support.
+dtoverlay=vc4-kms-v3d
+disable_fw_kms_setup=1
+enable_uart=1
+
+# Raspberry Pi camera support.
+camera_auto_detect=1
+display_auto_detect=1
+dtoverlay=imx219,cam0
+dtoverlay=imx219,cam1
+
+# USB gadget/OTG support used by the Ubuntu Raspberry Pi image.
+dtoverlay=dwc2
+
+[pi4]
+max_framebuffers=2
+arm_boost=1
+
+[pi3+]
+dtoverlay=vc4-kms-v3d,cma-128
+
+[pi02]
+dtoverlay=vc4-kms-v3d,cma-128
+
+[cm4]
+dtoverlay=dwc2,dr_mode=host
+
+[all]
+usb_max_current_enable=1
+
+# ReSpeaker 2-Mic HAT.
+dtoverlay=respeaker-2mic-v2_0

@@ -2,6 +2,9 @@
 
 This draft assumes private GitHub repositories are cloned with SSH during Docker build.
 
+For the full process starting from a formatted microSD card attached to a Mac,
+use `microsd-card-build.md`.
+
 ## Build With SSH Forwarding
 
 Start an SSH agent on the build machine and load a key that can read the private repos:
@@ -39,9 +42,21 @@ sudo ./host-setup.sh
 
 Then log out and back in so Docker group membership applies.
 
+To restore reviewed Raspberry Pi boot firmware files:
+
+```sh
+mkdir -p host-files/boot/firmware
+cp host-file-templates/boot/firmware/config.txt host-files/boot/firmware/config.txt
+cp host-file-templates/boot/firmware/cmdline.txt host-files/boot/firmware/cmdline.txt
+sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+```
+
+Review `user-data.template` and `network-config.template` manually before using
+them because real versions can contain password hashes and Wi-Fi credentials.
+
 ## Notes
 
 - SSH keys are forwarded during build and are not copied into the image.
-- Host udev rules and netplan belong on the Pi host, not in the container.
+- Host udev rules, netplan, and `/boot/firmware` belong on the Pi host, not in the container.
 - `compose.yaml` uses `network_mode: host` and `privileged: true` for the first working draft. We can tighten privileges after the image works.
 - Runtime state is mounted under `./runtime-data/`.

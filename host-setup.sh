@@ -66,4 +66,23 @@ else
   echo "No ./host-files/etc/netplan directory found; skipping netplan restore."
 fi
 
+if [[ "${RESTORE_BOOT_FIRMWARE:-0}" == "1" ]]; then
+  if [[ -d ./host-files/boot/firmware ]]; then
+    install -m 0755 -d /boot/firmware
+    for boot_file in config.txt cmdline.txt; do
+      if [[ -f "./host-files/boot/firmware/${boot_file}" ]]; then
+        if [[ -f "/boot/firmware/${boot_file}" ]]; then
+          cp "/boot/firmware/${boot_file}" "/boot/firmware/${boot_file}.pre-dome-docker"
+        fi
+        install -m 0644 "./host-files/boot/firmware/${boot_file}" "/boot/firmware/${boot_file}"
+      fi
+    done
+    echo "Boot firmware files copied. Reboot the Pi for /boot/firmware changes to apply."
+  else
+    echo "RESTORE_BOOT_FIRMWARE=1 set, but no ./host-files/boot/firmware directory found."
+  fi
+else
+  echo "Skipping /boot/firmware restore. Set RESTORE_BOOT_FIRMWARE=1 to copy reviewed boot files."
+fi
+
 echo "Host setup complete. Log out and back in for docker group membership to apply."
