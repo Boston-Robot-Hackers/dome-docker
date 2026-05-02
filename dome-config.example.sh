@@ -7,15 +7,14 @@
 #   nano dome-config.sh
 #   source ./dome-config.sh
 
-# Host user created or configured by host-setup.sh.
-export DOME_HOST_USER="${DOME_HOST_USER:-robot}"
+# User created or configured on the Pi host and inside the Docker image.
+export DOME_USER="${DOME_USER:-robot}"
 
-# Leave empty to preserve an existing password from cloud-init or Raspberry Pi
-# Imager. Set only in your local dome-config.sh; do not commit real passwords.
-export DOME_HOST_PASSWORD="${DOME_HOST_PASSWORD:-}"
-
-# User created inside the Docker image.
-export DOME_CONTAINER_USER="${DOME_CONTAINER_USER:-robot}"
+# Optional password for DOME_USER. Leave empty to preserve an existing host
+# password from cloud-init or Raspberry Pi Imager. If used for Docker image
+# builds, the value is baked into the image and may be visible in local image
+# metadata or build logs. Do not commit real passwords.
+export DOME_PASSWORD="${DOME_PASSWORD:-}"
 
 # Image name used by Docker Compose.
 export DOME_IMAGE="${DOME_IMAGE:-dome-docker:dome-kilted}"

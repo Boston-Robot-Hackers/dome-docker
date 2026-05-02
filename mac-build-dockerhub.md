@@ -104,6 +104,6 @@ docker compose run --rm --no-build dome
 This avoids a local Docker build on the Pi. The Pi still needs host setup:
 
 ```sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 sudo reboot
 ```

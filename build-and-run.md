@@ -56,7 +56,7 @@ cd dome-docker
 cp dome-config.example.sh dome-config.sh
 nano dome-config.sh
 source ./dome-config.sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
 If setup stops with `Could not resolve host: download.docker.com`, fix the Pi's

@@ -140,7 +140,7 @@ host-files/etc/netplan/
 Basic setup:
 
 ```sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
 If setup stops with a DNS error such as `Could not resolve host:
@@ -168,7 +168,7 @@ To also restore reviewed `/boot/firmware/config.txt` and
 `/boot/firmware/cmdline.txt`:
 
 ```sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
 ```
 
 Reboot after host setup:

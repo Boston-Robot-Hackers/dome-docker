@@ -65,10 +65,10 @@ source ./dome-config.sh
 
 Important settings:
 
-- `DOME_HOST_USER`: Linux user on the Pi host.
-- `DOME_HOST_PASSWORD`: optional host password; leave empty to preserve a
-  cloud-init or Raspberry Pi Imager password.
-- `DOME_CONTAINER_USER`: Linux user inside the Docker image.
+- `DOME_USER`: Linux user on the Pi host and inside the Docker image.
+- `DOME_PASSWORD`: optional password for `DOME_USER`; leave empty to preserve a
+  cloud-init or Raspberry Pi Imager host password and avoid baking a password
+  into the Docker image.
 - `DOME_BASE_IMAGE`: reusable base image with shared ROS Kilted dependencies.
 - `DOME_IMAGE`: overlay image built from the base image.
 - `DOME_DOCKER_REPO_URL`: URL used to clone this setup repo on a fresh Pi.
@@ -226,17 +226,17 @@ cd dome-docker
 cp dome-config.example.sh dome-config.sh
 nano dome-config.sh
 source ./dome-config.sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
 Default user provisioning:
 
-- User: `DOME_HOST_USER`, default `robot`
-- Password: unchanged when `DOME_HOST_PASSWORD` is empty
-- Override with `DOME_HOST_PASSWORD` if desired:
+- User: `DOME_USER`, default `robot`
+- Password: unchanged when `DOME_PASSWORD` is empty
+- Override with `DOME_PASSWORD` if desired:
 
 ```sh
-sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
 Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.

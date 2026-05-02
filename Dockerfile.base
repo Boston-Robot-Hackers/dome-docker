@@ -83,4 +83,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-kilted-xacro \
     && rm -rf /var/lib/apt/lists/*
 
+# Dockerfile RUN steps execute as root, so the host-side "sudo sh" form is not needed here.
+RUN curl -LSfs https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh | sh -s -- --git cantino/mcfly
+
 RUN rosdep init || true

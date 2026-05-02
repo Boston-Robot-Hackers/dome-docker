@@ -35,7 +35,7 @@ users:
 #
 #       chown -R REPLACE_WITH_HOST_USER:REPLACE_WITH_HOST_USER /home/REPLACE_WITH_HOST_USER/dome-docker
 #       cd /home/REPLACE_WITH_HOST_USER/dome-docker
-#       DOME_HOST_USER=REPLACE_WITH_HOST_USER DOME_HOST_PASSWORD= ./host-setup.sh
+#       DOME_USER=REPLACE_WITH_HOST_USER DOME_PASSWORD= ./host-setup.sh
 #
 # runcmd:
 #   - [bash, /usr/local/sbin/dome-firstboot.sh]
