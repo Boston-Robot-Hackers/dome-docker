@@ -37,7 +37,32 @@ docker compose run --rm dome
 On a freshly flashed Raspberry Pi 5 host:
 
 ```sh
+cd ~
+sudo apt update
+sudo apt install -y git ca-certificates
+git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
+cd dome-docker
 sudo ./host-setup.sh
+```
+
+If setup stops with `Could not resolve host: download.docker.com`, fix the Pi's
+network/DNS first:
+
+```sh
+ip route get 1.1.1.1
+ping -c 3 1.1.1.1
+getent hosts download.docker.com
+resolvectl status
+```
+
+If DNS returns only IPv6 addresses for `download.docker.com`, force working DNS
+servers on Wi-Fi and retry:
+
+```sh
+sudo resolvectl dns wlan0 1.1.1.1 8.8.8.8
+sudo resolvectl domain wlan0 '~.'
+sudo resolvectl flush-caches
+getent ahostsv4 download.docker.com
 ```
 
 Then log out and back in so Docker group membership applies.

@@ -166,6 +166,46 @@ During image build, `rosdep install` runs as root because it may need to install
 
 Those packages remain in the source tree, but their unresolved rosdep keys do not block the first image build.
 
+## Host Setup
+
+On a freshly flashed Pi:
+
+```sh
+cd ~
+sudo apt update
+sudo apt install -y git ca-certificates
+git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
+cd dome-docker
+sudo ./host-setup.sh
+```
+
+Default user provisioning:
+
+- User: `pitosalas`
+- Default password: `daniel` when `PITOSALAS_PASSWORD` is not set
+- Override with `PITOSALAS_PASSWORD` if desired:
+
+```sh
+sudo PITOSALAS_PASSWORD='new-password' ./host-setup.sh
+```
+
+To preserve a password that was already configured by cloud-init:
+
+```sh
+sudo PITOSALAS_PASSWORD= ./host-setup.sh
+```
+
+Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.
+Review them before use. To restore reviewed `config.txt` and `cmdline.txt` on a
+Pi, copy them into ignored `host-files/boot/firmware/` and run:
+
+```sh
+sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+```
+
+Do not commit real `user-data` or `network-config` files with password hashes or
+Wi-Fi credentials.
+
 ## SSH Repositories
 
 The Dockerfile uses SSH GitHub URLs for private/internal repos. Build with SSH forwarding; SSH keys are forwarded during build and are not copied into the image.

@@ -54,6 +54,10 @@ In Imager settings, configure:
 
 Write the image. This erases the selected microSD card.
 
+If using Wi-Fi, prefer writing a reviewed `network-config` based on
+`host-file-templates/boot/firmware/network-config.template` so the Pi uses DNS
+servers that return IPv4 records for Docker's package repository.
+
 ## 3. Copy Boot Firmware Templates
 
 After flashing, eject and reinsert the card if the boot partition is not mounted.
@@ -92,12 +96,21 @@ ssh pitosalas@<pi-ip-address>
 
 ```sh
 cd ~
-git clone <YOUR_DOME_DOCKER_REPO_URL> dome-docker
+sudo apt update
+sudo apt install -y git ca-certificates
+git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
 cd dome-docker
 ```
 
-Use the real repository URL. If the repository is private, make sure the Pi can
-authenticate to GitHub.
+If the repository is private, use the SSH URL instead and make sure the Pi can
+authenticate to GitHub before cloning:
+
+```sh
+git clone git@github.com:Boston-Robot-Hackers/dome-docker.git dome-docker
+```
+
+If `~/dome-docker` is missing later, return to this step before running Docker
+commands. Docker is installed by `host-setup.sh`, which lives inside this repo.
 
 ## 6. Prepare Optional Host Files
 
@@ -125,6 +138,27 @@ Basic setup:
 
 ```sh
 sudo ./host-setup.sh
+```
+
+If setup stops with a DNS error such as `Could not resolve host:
+download.docker.com`, verify the Pi has working internet and DNS before
+rerunning:
+
+```sh
+ip route get 1.1.1.1
+ping -c 3 1.1.1.1
+getent hosts download.docker.com
+resolvectl status
+```
+
+If DNS returns only IPv6 addresses for `download.docker.com`, force working DNS
+servers on Wi-Fi and retry:
+
+```sh
+sudo resolvectl dns wlan0 1.1.1.1 8.8.8.8
+sudo resolvectl domain wlan0 '~.'
+sudo resolvectl flush-caches
+getent ahostsv4 download.docker.com
 ```
 
 To also restore reviewed `/boot/firmware/config.txt` and

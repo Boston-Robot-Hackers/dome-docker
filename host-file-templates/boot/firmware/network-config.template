@@ -3,6 +3,10 @@ wifis:
   renderer: networkd
   wlan0:
     dhcp4: true
+    nameservers:
+      addresses:
+        - 1.1.1.1
+        - 8.8.8.8
     optional: true
     access-points:
       "REPLACE_WITH_WIFI_SSID":

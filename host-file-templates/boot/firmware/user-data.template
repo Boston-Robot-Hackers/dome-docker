@@ -3,6 +3,8 @@ hostname: dome
 manage_etc_hosts: true
 packages:
   - avahi-daemon
+  - ca-certificates
+  - git
 apt:
   conf: |
     Acquire {
@@ -16,3 +18,24 @@ users:
     lock_passwd: false
     # Replace with a reviewed password hash before writing this to /boot/firmware.
     passwd: "REPLACE_WITH_PASSWORD_HASH"
+
+# Optional: uncomment this block when you want first boot to clone the repo and
+# run host setup automatically. This requires network access during first boot.
+#
+# write_files:
+#   - path: /usr/local/sbin/dome-firstboot.sh
+#     permissions: "0755"
+#     content: |
+#       #!/usr/bin/env bash
+#       set -euo pipefail
+#
+#       if [[ ! -d /home/pitosalas/dome-docker ]]; then
+#         git clone https://github.com/Boston-Robot-Hackers/dome-docker.git /home/pitosalas/dome-docker
+#       fi
+#
+#       chown -R pitosalas:pitosalas /home/pitosalas/dome-docker
+#       cd /home/pitosalas/dome-docker
+#       PITOSALAS_PASSWORD= ./host-setup.sh
+#
+# runcmd:
+#   - [bash, /usr/local/sbin/dome-firstboot.sh]

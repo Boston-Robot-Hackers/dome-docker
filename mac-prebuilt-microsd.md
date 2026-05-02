@@ -60,7 +60,8 @@ Edit `local-cloud-init/user-data`:
 
 - Replace `REPLACE_WITH_PASSWORD_HASH`.
 - Add the first-boot commands from the example below.
-- Replace `REPLACE_WITH_REPO_URL`.
+- Replace `REPLACE_WITH_REPO_URL` if you need an SSH/private fork URL; otherwise
+  use `https://github.com/Boston-Robot-Hackers/dome-docker.git`.
 - Replace `REPLACE_WITH_IMAGE`.
 
 Edit `local-cloud-init/network-config`:
@@ -103,7 +104,7 @@ write_files:
       usermod -aG docker pitosalas
 
       if [[ ! -d /home/pitosalas/dome-docker ]]; then
-        git clone REPLACE_WITH_REPO_URL /home/pitosalas/dome-docker
+        git clone https://github.com/Boston-Robot-Hackers/dome-docker.git /home/pitosalas/dome-docker
       fi
       chown -R pitosalas:pitosalas /home/pitosalas/dome-docker
 

@@ -6,8 +6,52 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-USERNAME="pitosalas"
-PASSWORD="daniel"
+USERNAME="${PITOSALAS_USERNAME:-pitosalas}"
+PASSWORD="${PITOSALAS_PASSWORD-daniel}"
+DOCKER_APT_HOST="download.docker.com"
+
+default_network_interface() {
+  ip route get 1.1.1.1 | awk '{for (i = 1; i <= NF; i++) if ($i == "dev") {print $(i + 1); exit}}'
+}
+
+check_network_ready() {
+  if ! ip route get 1.1.1.1 >/dev/null 2>&1; then
+    cat >&2 <<'EOF'
+Network is not ready: no route to the internet.
+Check Wi-Fi/Ethernet and netplan before rerunning this script.
+EOF
+    exit 1
+  fi
+
+  if ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
+    local interface
+    interface="$(default_network_interface)"
+    if [[ -n "${interface}" ]] && command -v resolvectl >/dev/null 2>&1; then
+      echo "DNS is not returning an IPv4 address for ${DOCKER_APT_HOST}; applying fallback DNS on ${interface}."
+      resolvectl dns "${interface}" 1.1.1.1 8.8.8.8
+      resolvectl domain "${interface}" '~.'
+      resolvectl flush-caches
+    fi
+  fi
+
+  if ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
+    cat >&2 <<EOF
+DNS is not returning an IPv4 address for ${DOCKER_APT_HOST}.
+Check the Pi's DNS configuration, then rerun this script.
+
+Useful checks:
+  resolvectl status
+  ping -c 3 1.1.1.1
+  getent ahostsv4 ${DOCKER_APT_HOST}
+
+Temporary DNS fix:
+  sudo resolvectl dns <interface> 1.1.1.1 8.8.8.8
+  sudo resolvectl domain <interface> '~.'
+  sudo resolvectl flush-caches
+EOF
+    exit 1
+  fi
+}
 
 apt-get update
 apt-get install -y \
@@ -28,22 +72,26 @@ if ! id "${USERNAME}" >/dev/null 2>&1; then
   adduser --gecos "" "${USERNAME}"
 fi
 
-echo "${USERNAME}:${PASSWORD}" | chpasswd
+if [[ -n "${PASSWORD}" ]]; then
+  echo "${USERNAME}:${PASSWORD}" | chpasswd
+fi
 usermod -aG sudo "${USERNAME}"
+
+check_network_ready
 
 install -m 0755 -d /etc/apt/keyrings
 if [[ ! -f /etc/apt/keyrings/docker.asc ]]; then
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  curl -4 -fsSL "https://${DOCKER_APT_HOST}/linux/ubuntu/gpg" -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
 fi
 
 . /etc/os-release
 cat >/etc/apt/sources.list.d/docker.list <<EOF
-deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable
+deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://${DOCKER_APT_HOST}/linux/ubuntu ${VERSION_CODENAME} stable
 EOF
 
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get -o Acquire::ForceIPv4=true update
+apt-get -o Acquire::ForceIPv4=true install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 systemctl enable docker
 systemctl start docker
