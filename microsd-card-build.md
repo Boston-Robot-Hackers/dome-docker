@@ -47,7 +47,7 @@ Settings:
 In Imager settings, configure:
 
 - Hostname: `dome`
-- User: `pitosalas`
+- User: your chosen Pi user, for example `robot`
 - SSH: enabled
 - Wi-Fi: configure here if this Pi needs Wi-Fi on first boot
 - Locale/timezone as needed
@@ -83,13 +83,13 @@ Insert the card into the Raspberry Pi 5 and boot it.
 Try mDNS first:
 
 ```sh
-ssh pitosalas@dome.local
+ssh <your-pi-user>@dome.local
 ```
 
 If mDNS is unavailable, find the Pi address from the router and use:
 
 ```sh
-ssh pitosalas@<pi-ip-address>
+ssh <your-pi-user>@<pi-ip-address>
 ```
 
 ## 5. Clone This Repo On The Pi
@@ -100,6 +100,9 @@ sudo apt update
 sudo apt install -y git ca-certificates
 git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
 cd dome-docker
+cp dome-config.example.sh dome-config.sh
+nano dome-config.sh
+source ./dome-config.sh
 ```
 
 If the repository is private, use the SSH URL instead and make sure the Pi can
@@ -137,7 +140,7 @@ host-files/etc/netplan/
 Basic setup:
 
 ```sh
-sudo ./host-setup.sh
+sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
 ```
 
 If setup stops with a DNS error such as `Could not resolve host:
@@ -165,7 +168,7 @@ To also restore reviewed `/boot/firmware/config.txt` and
 `/boot/firmware/cmdline.txt`:
 
 ```sh
-sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
 ```
 
 Reboot after host setup:
@@ -176,7 +179,19 @@ sudo reboot
 
 Log back in after reboot. Docker group membership may require this new login.
 
-## 8. Build The Docker Image
+## 8. Build Or Pull The Docker Image
+
+Preferred: build and push the image from the Mac, then pull it on the Pi. See
+`mac-build-dockerhub.md`.
+
+If `DOME_IMAGE` points to a pushed Docker Hub image:
+
+```sh
+docker compose pull dome
+docker compose run --rm --no-build dome
+```
+
+Fallback: build directly on the Pi.
 
 The Docker build clones private GitHub repositories. On the Pi, use the helper:
 
@@ -185,7 +200,8 @@ The Docker build clones private GitHub repositories. On the Pi, use the helper:
 ```
 
 If the Pi's GitHub key is not authorized yet, the helper prints the public key
-to add to GitHub. Add it, then rerun `./pi-build.sh`.
+to add to GitHub. Add it, then rerun `./pi-build.sh`. For local Pi builds, the
+helper also builds `DOME_BASE_IMAGE` first if it is not already present.
 
 If building on a Mac for Raspberry Pi arm64 instead of building on the Pi:
 
@@ -200,7 +216,7 @@ DOCKER_BUILDKIT=1 docker buildx build \
 ## 9. Run The Container
 
 ```sh
-docker compose run --rm dome
+docker compose run --rm --no-build dome
 ```
 
 Smoke tests inside the container:

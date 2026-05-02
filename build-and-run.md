@@ -5,7 +5,18 @@ This draft assumes private GitHub repositories are cloned with SSH during Docker
 For the full process starting from a formatted microSD card attached to a Mac,
 use `microsd-card-build.md`.
 
+Copy and customize local settings before building:
+
+```sh
+cp dome-config.example.sh dome-config.sh
+nano dome-config.sh
+source ./dome-config.sh
+```
+
 ## Build With SSH Forwarding
+
+For the fastest Raspberry Pi setup, build and push the image from the Mac, then
+pull it on the Pi. See `mac-build-dockerhub.md`.
 
 The Docker build clones private GitHub repositories. On the Pi, use the helper:
 
@@ -14,18 +25,22 @@ The Docker build clones private GitHub repositories. On the Pi, use the helper:
 ```
 
 If the Pi's GitHub key is not authorized yet, the helper prints the public key
-to add to GitHub. Add it, then rerun `./pi-build.sh`.
+to add to GitHub. Add it, then rerun `./pi-build.sh`. For local Pi builds, the
+helper also builds `DOME_BASE_IMAGE` first if it is not already present.
 
 Or build directly:
 
 ```sh
-DOCKER_BUILDKIT=1 docker build --ssh default -t pidockerexperiment:dome-kilted .
+DOCKER_BUILDKIT=1 docker buildx build \
+  --ssh default \
+  --build-arg "DOME_BASE_IMAGE=${DOME_BASE_IMAGE:-dome-docker-base:kilted}" \
+  -t "${DOME_IMAGE:-dome-docker:dome-kilted}" .
 ```
 
 ## Run
 
 ```sh
-docker compose run --rm dome
+docker compose run --rm --no-build dome
 ```
 
 ## Host Setup
@@ -36,9 +51,12 @@ On a freshly flashed Raspberry Pi 5 host:
 cd ~
 sudo apt update
 sudo apt install -y git ca-certificates
-git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
+git clone "${DOME_DOCKER_REPO_URL:-https://github.com/Boston-Robot-Hackers/dome-docker.git}" dome-docker
 cd dome-docker
-sudo ./host-setup.sh
+cp dome-config.example.sh dome-config.sh
+nano dome-config.sh
+source ./dome-config.sh
+sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
 ```
 
 If setup stops with `Could not resolve host: download.docker.com`, fix the Pi's

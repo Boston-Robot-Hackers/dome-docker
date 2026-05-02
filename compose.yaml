@@ -4,7 +4,13 @@ services:
       context: .
       ssh:
         - default
-    image: pidockerexperiment:dome-kilted
+      args:
+        DOME_BASE_IMAGE: ${DOME_BASE_IMAGE:-dome-docker-base:kilted}
+        DOME_CONTAINER_USER: ${DOME_CONTAINER_USER:-robot}
+        DOME_ROOT_REPOS: ${DOME_ROOT_REPOS:-https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git seeed-linux-dtoverlays;https://github.com/raspberrypi/libcamera-apps.git libcamera-apps}
+        DOME_ROS_REPOS: ${DOME_ROS_REPOS:-https://github.com/dfki-ric/better_launch.git better_launch;https://github.com/hippo5329/ldlidar_stl_ros2.git ldlidar_stl_ros2;https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent;https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs;https://github.com/christianrauch/camera_ros.git camera_ros}
+        DOME_UROS_REPOS: ${DOME_UROS_REPOS:-https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent;https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs}
+    image: ${DOME_IMAGE:-dome-docker:dome-kilted}
     container_name: dome-kilted
     network_mode: host
     privileged: true
@@ -12,13 +18,14 @@ services:
     tty: true
     environment:
       DISPLAY: ${DISPLAY:-}
+      DOME_HOME: /home/${DOME_CONTAINER_USER:-robot}
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
       RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
     volumes:
       - /dev/bus/usb:/dev/bus/usb
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./runtime-data/ros:/home/pitosalas/.ros
-      - ./runtime-data/control:/home/pitosalas/.control
+      - ./runtime-data/ros:/home/${DOME_CONTAINER_USER:-robot}/.ros
+      - ./runtime-data/control:/home/${DOME_CONTAINER_USER:-robot}/.control
     device_cgroup_rules:
       - 'c 189:* rmw'
     devices:

@@ -12,7 +12,7 @@ apt:
     };
 
 users:
-  - name: pitosalas
+  - name: REPLACE_WITH_HOST_USER
     groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
     shell: /bin/bash
     lock_passwd: false
@@ -29,13 +29,13 @@ users:
 #       #!/usr/bin/env bash
 #       set -euo pipefail
 #
-#       if [[ ! -d /home/pitosalas/dome-docker ]]; then
-#         git clone https://github.com/Boston-Robot-Hackers/dome-docker.git /home/pitosalas/dome-docker
+#       if [[ ! -d /home/REPLACE_WITH_HOST_USER/dome-docker ]]; then
+#         git clone REPLACE_WITH_REPO_URL /home/REPLACE_WITH_HOST_USER/dome-docker
 #       fi
 #
-#       chown -R pitosalas:pitosalas /home/pitosalas/dome-docker
-#       cd /home/pitosalas/dome-docker
-#       PITOSALAS_PASSWORD= ./host-setup.sh
+#       chown -R REPLACE_WITH_HOST_USER:REPLACE_WITH_HOST_USER /home/REPLACE_WITH_HOST_USER/dome-docker
+#       cd /home/REPLACE_WITH_HOST_USER/dome-docker
+#       DOME_HOST_USER=REPLACE_WITH_HOST_USER DOME_HOST_PASSWORD= ./host-setup.sh
 #
 # runcmd:
 #   - [bash, /usr/local/sbin/dome-firstboot.sh]

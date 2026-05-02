@@ -5,7 +5,9 @@ natively mount and edit the Ubuntu root filesystem because that partition is
 ext4. A truly offline, fully provisioned card from macOS requires a Linux VM,
 USB card-reader passthrough, and rootfs customization.
 
-The practical approach is:
+For the normal build-on-Mac/pull-on-Pi workflow, see `mac-build-dockerhub.md`.
+
+The more automated first-boot approach is:
 
 1. Build the arm64 Docker image on the Mac.
 2. Push it to a registry the Pi can read.
@@ -60,8 +62,7 @@ Edit `local-cloud-init/user-data`:
 
 - Replace `REPLACE_WITH_PASSWORD_HASH`.
 - Add the first-boot commands from the example below.
-- Replace `REPLACE_WITH_REPO_URL` if you need an SSH/private fork URL; otherwise
-  use `https://github.com/Boston-Robot-Hackers/dome-docker.git`.
+- Replace `REPLACE_WITH_REPO_URL` with the URL for this setup repo.
 - Replace `REPLACE_WITH_IMAGE`.
 
 Edit `local-cloud-init/network-config`:
@@ -101,14 +102,14 @@ write_files:
       apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       systemctl enable docker
       systemctl start docker
-      usermod -aG docker pitosalas
+      usermod -aG docker REPLACE_WITH_HOST_USER
 
-      if [[ ! -d /home/pitosalas/dome-docker ]]; then
-        git clone https://github.com/Boston-Robot-Hackers/dome-docker.git /home/pitosalas/dome-docker
+      if [[ ! -d /home/REPLACE_WITH_HOST_USER/dome-docker ]]; then
+        git clone REPLACE_WITH_REPO_URL /home/REPLACE_WITH_HOST_USER/dome-docker
       fi
-      chown -R pitosalas:pitosalas /home/pitosalas/dome-docker
+      chown -R REPLACE_WITH_HOST_USER:REPLACE_WITH_HOST_USER /home/REPLACE_WITH_HOST_USER/dome-docker
 
-      cd /home/pitosalas/dome-docker
+      cd /home/REPLACE_WITH_HOST_USER/dome-docker
       sed -i 's#image: .*#image: REPLACE_WITH_IMAGE#' compose.yaml
       docker compose pull dome
 

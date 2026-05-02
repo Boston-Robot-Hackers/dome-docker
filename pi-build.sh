@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ -f ./dome-config.sh ]]; then
+  # shellcheck disable=SC1091
+  source ./dome-config.sh
+fi
+
 KEY_PATH="${DOME_SSH_KEY:-${HOME}/.ssh/id_ed25519}"
-KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-pitosalas@dome}"
+KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-${USER:-robot}@$(hostname -s 2>/dev/null || echo dome)}"
+DOME_BASE_IMAGE="${DOME_BASE_IMAGE:-dome-docker-base:kilted}"
 
 if ! command -v docker >/dev/null 2>&1; then
   cat >&2 <<'EOF'
@@ -59,6 +65,10 @@ GitHub path:
   Settings -> SSH and GPG keys -> New SSH key
 EOF
   exit 1
+fi
+
+if ! docker image inspect "${DOME_BASE_IMAGE}" >/dev/null 2>&1; then
+  DOCKER_BUILDKIT=1 docker build -f Dockerfile.base -t "${DOME_BASE_IMAGE}" .
 fi
 
 DOCKER_BUILDKIT=1 docker compose build --ssh default

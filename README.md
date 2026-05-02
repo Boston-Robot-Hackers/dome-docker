@@ -26,6 +26,10 @@ The system is split into two layers:
     prebuilt image on first boot.
   - This is the closest practical version of a Mac-prebuilt card without using
     a Linux VM to edit the ext4 root filesystem.
+- `mac-build-dockerhub.md`
+  - Preferred when the image takes too long to build on the Pi.
+  - Builds and pushes a `linux/arm64` image from the Mac, then the Pi pulls and
+    runs it.
 - `build-and-run.md`
   - Use this after the host is already provisioned and you only need the Docker
     build/run commands.
@@ -33,6 +37,7 @@ The system is split into two layers:
 ## Repository Layout
 
 - `Dockerfile`: builds the ROS 2 Kilted image.
+- `Dockerfile.base`: builds the reusable ROS Kilted base image.
 - `compose.yaml`: runs the container with host networking and broad device
   access for the first working hardware-connected draft.
 - `docker-entrypoint.sh`: sources ROS and workspace overlays.
@@ -40,16 +45,42 @@ The system is split into two layers:
   udev/netplan restore, and optional `/boot/firmware` restore.
 - `host-file-templates/`: sanitized templates for host files that may need to
   be copied to a new Pi.
-- `host-provisioning-plan.md`: host-side design notes and responsibilities.
-- `container-build-plan.md`: container/image design notes and source/package
-  decisions.
-- `archive/`: first-pass research notes kept for history, not normal workflow.
 
 Ignored local directories:
 
 - `host-files/`: reviewed host-specific files to install on a Pi.
 - `runtime-data/`: mutable container runtime state mounted by Compose.
 - `local-cloud-init/`: edited cloud-init files that may contain secrets.
+- `dome-config.sh`: local user, image, and repository settings.
+
+## Local Configuration
+
+Copy the example config and edit it for your robot:
+
+```sh
+cp dome-config.example.sh dome-config.sh
+nano dome-config.sh
+source ./dome-config.sh
+```
+
+Important settings:
+
+- `DOME_HOST_USER`: Linux user on the Pi host.
+- `DOME_HOST_PASSWORD`: optional host password; leave empty to preserve a
+  cloud-init or Raspberry Pi Imager password.
+- `DOME_CONTAINER_USER`: Linux user inside the Docker image.
+- `DOME_BASE_IMAGE`: reusable base image with shared ROS Kilted dependencies.
+- `DOME_IMAGE`: overlay image built from the base image.
+- `DOME_DOCKER_REPO_URL`: URL used to clone this setup repo on a fresh Pi.
+- `DOME_ROOT_REPOS`, `DOME_ROS_REPOS`, `DOME_UROS_REPOS`: semicolon-separated
+  `repo_url destination_dir` entries cloned during the Docker build.
+
+Do not commit `dome-config.sh`.
+
+Before publishing a repository that previously contained personal paths,
+private repository names, passwords, or other local details, rewrite or recreate
+Git history. Removing those values from the current tree is not enough to remove
+them from older commits.
 
 ## Host Files And Secrets
 
@@ -95,7 +126,8 @@ DOCKER_BUILDKIT=1 docker buildx build \
   -t dome-docker:dome-kilted .
 ```
 
-`--ssh default=$SSH_AUTH_SOCK` is important on macOS. It forwards your Mac SSH agent into the BuildKit step without copying private keys into the image. The Dockerfile runs private `git clone` commands as root using the forwarded SSH socket, then changes ownership of `/home/pitosalas` back to the non-root `pitosalas` user. This avoids Docker Desktop SSH socket permission issues during build.
+`--ssh default=$SSH_AUTH_SOCK` is important on macOS. It forwards your Mac SSH
+agent into the BuildKit step without copying private keys into the image.
 
 If no key is loaded:
 
@@ -112,7 +144,11 @@ The Docker build clones private GitHub repositories. On the Pi, use the helper:
 ```
 
 If the Pi's GitHub key is not authorized yet, the helper prints the public key
-to add to GitHub. Add it, then rerun `./pi-build.sh`.
+to add to GitHub. Add it, then rerun `./pi-build.sh`. For local Pi builds, the
+helper also builds `DOME_BASE_IMAGE` first if it is not already present.
+
+For faster setup, build and push the image from the Mac instead, then pull it on
+the Pi. See `mac-build-dockerhub.md`.
 
 ## Run
 
@@ -185,25 +221,22 @@ On a freshly flashed Pi:
 cd ~
 sudo apt update
 sudo apt install -y git ca-certificates
-git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
+git clone "${DOME_DOCKER_REPO_URL:-https://github.com/Boston-Robot-Hackers/dome-docker.git}" dome-docker
 cd dome-docker
-sudo ./host-setup.sh
+cp dome-config.example.sh dome-config.sh
+nano dome-config.sh
+source ./dome-config.sh
+sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
 ```
 
 Default user provisioning:
 
-- User: `pitosalas`
-- Default password: `daniel` when `PITOSALAS_PASSWORD` is not set
-- Override with `PITOSALAS_PASSWORD` if desired:
+- User: `DOME_HOST_USER`, default `robot`
+- Password: unchanged when `DOME_HOST_PASSWORD` is empty
+- Override with `DOME_HOST_PASSWORD` if desired:
 
 ```sh
-sudo PITOSALAS_PASSWORD='new-password' ./host-setup.sh
-```
-
-To preserve a password that was already configured by cloud-init:
-
-```sh
-sudo PITOSALAS_PASSWORD= ./host-setup.sh
+sudo --preserve-env=DOME_HOST_USER,DOME_HOST_PASSWORD ./host-setup.sh
 ```
 
 Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.

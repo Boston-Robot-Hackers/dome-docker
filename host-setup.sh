@@ -6,8 +6,8 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-USERNAME="${PITOSALAS_USERNAME:-pitosalas}"
-PASSWORD="${PITOSALAS_PASSWORD-daniel}"
+USERNAME="${DOME_HOST_USER:-${USER:-robot}}"
+PASSWORD="${DOME_HOST_PASSWORD-}"
 DOCKER_APT_HOST="download.docker.com"
 
 default_network_interface() {

@@ -5,6 +5,7 @@ inventory/
 runtime-data/
 host-files/
 local-cloud-init/
+dome-config.sh
 
 # Local editor and OS files
 .DS_Store
