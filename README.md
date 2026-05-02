@@ -1,30 +1,80 @@
 # Dome Docker
 
-Draft automation for rebuilding the Raspberry Pi 5 dome/robot environment as a Docker-based system.
+Automation and runbooks for rebuilding the Raspberry Pi 5 dome/robot
+environment as an Ubuntu host running a ROS 2 Docker container.
 
-Target host:
+The system is split into two layers:
 
-- Raspberry Pi 5
-- Ubuntu Server 24.04.4 LTS, 64-bit, headless
-- Docker Engine
+- Host: Raspberry Pi 5, Ubuntu Server 24.04 LTS 64-bit, Docker Engine, udev,
+  boot firmware, networking, and hardware access.
+- Container: ROS 2 Kilted on `ros:kilted-ros-base-noble`, with robot source
+  repositories cloned and built during the Docker image build.
 
-Target container:
+## Which Runbook To Use
 
-- `ros:kilted-ros-base-noble`
-- ROS 2 Kilted packages for DepthAI/OAK, camera, Nav2, lidar, diagnostics, RViz/Foxglove, and robot support
-- Source repos cloned with SSH during Docker build
+- `microsd-card-build.md`
+  - Use this for the normal path.
+  - Starts with a microSD card attached to a Mac.
+  - Covers erasing/formatting the card, flashing Ubuntu with Raspberry Pi
+    Imager, copying boot firmware templates, booting the Pi, running host setup,
+    building the Docker image, and smoke testing.
+- `mac-prebuilt-microsd.md`
+  - Use this when you want to build the arm64 Docker image on the Mac before the
+    Pi boots.
+  - Pushes the image to a registry, writes cloud-init files to the boot
+    partition, then lets the Pi install Docker, clone this repo, and pull the
+    prebuilt image on first boot.
+  - This is the closest practical version of a Mac-prebuilt card without using
+    a Linux VM to edit the ext4 root filesystem.
+- `build-and-run.md`
+  - Use this after the host is already provisioned and you only need the Docker
+    build/run commands.
 
-## Files
+## Repository Layout
 
-- `host-setup.sh` provisions the Pi host with Docker, user `pitosalas`, and optional host files.
-- `Dockerfile` builds the ROS 2 Kilted image.
-- `compose.yaml` runs the container with host networking and broad device access for the first working draft.
-- `docker-entrypoint.sh` sources ROS and workspace overlays.
-- `microsd-card-build.md` is the end-to-end runbook for building a new Raspberry Pi microSD card from a Mac.
-- `mac-prebuilt-microsd.md` documents the Mac-prebuilt image plus cloud-init first-boot path.
-- `build-and-run.md` has build/run command notes.
-- `*-plan.md` files capture design notes and candidate decisions.
-- `archive/` contains first-pass research notes that are no longer part of the normal workflow.
+- `Dockerfile`: builds the ROS 2 Kilted image.
+- `compose.yaml`: runs the container with host networking and broad device
+  access for the first working hardware-connected draft.
+- `docker-entrypoint.sh`: sources ROS and workspace overlays.
+- `host-setup.sh`: provisions the Pi host with Docker, user setup, optional
+  udev/netplan restore, and optional `/boot/firmware` restore.
+- `host-file-templates/`: sanitized templates for host files that may need to
+  be copied to a new Pi.
+- `host-provisioning-plan.md`: host-side design notes and responsibilities.
+- `container-build-plan.md`: container/image design notes and source/package
+  decisions.
+- `archive/`: first-pass research notes kept for history, not normal workflow.
+
+Ignored local directories:
+
+- `host-files/`: reviewed host-specific files to install on a Pi.
+- `runtime-data/`: mutable container runtime state mounted by Compose.
+- `local-cloud-init/`: edited cloud-init files that may contain secrets.
+
+## Host Files And Secrets
+
+Boot firmware templates are tracked under:
+
+- `host-file-templates/boot/firmware/config.txt`
+- `host-file-templates/boot/firmware/cmdline.txt`
+- `host-file-templates/boot/firmware/user-data.template`
+- `host-file-templates/boot/firmware/network-config.template`
+
+Real `user-data`, `network-config`, netplan files, private keys, `.env` files,
+and anything with Wi-Fi credentials or password hashes must stay out of git.
+Put reviewed local copies under ignored `host-files/` or `local-cloud-init/`.
+
+To restore reviewed boot firmware files on a Pi:
+
+```sh
+mkdir -p host-files/boot/firmware
+cp host-file-templates/boot/firmware/config.txt host-files/boot/firmware/config.txt
+cp host-file-templates/boot/firmware/cmdline.txt host-files/boot/firmware/cmdline.txt
+sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
+```
+
+`host-setup.sh` backs up existing boot files as `.pre-dome-docker` before
+replacing them.
 
 ## Build On Apple Silicon Mac
 
@@ -33,18 +83,6 @@ Make sure Docker Desktop is running and your GitHub SSH key is loaded:
 ```sh
 ssh -T git@github.com
 ssh-add -l
-```
-
-If no key is loaded:
-
-```sh
-ssh-add --apple-use-keychain ~/.ssh/id_ed25519
-```
-
-Confirm the private repo access works outside Docker:
-
-```sh
-git ls-remote git@github.com:campusrover/rosutils.git
 ```
 
 Build for Raspberry Pi / arm64:
@@ -59,15 +97,43 @@ DOCKER_BUILDKIT=1 docker buildx build \
 
 `--ssh default=$SSH_AUTH_SOCK` is important on macOS. It forwards your Mac SSH agent into the BuildKit step without copying private keys into the image. The Dockerfile runs private `git clone` commands as root using the forwarded SSH socket, then changes ownership of `/home/pitosalas` back to the non-root `pitosalas` user. This avoids Docker Desktop SSH socket permission issues during build.
 
-## Builder Troubleshooting
+If no key is loaded:
 
-If the build fails during a private `git clone` with:
-
-```text
-git@github.com: Permission denied (publickey).
+```sh
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ```
 
-but `ssh -T git@github.com` and `git ls-remote ...` work on the Mac, the active Buildx builder probably is not receiving SSH forwarding.
+## Run
+
+On the Pi:
+
+```sh
+docker compose run --rm dome
+```
+
+Smoke tests inside the container:
+
+```sh
+echo "$ROS_DISTRO"
+ros2 --help
+ls ~/ros2_ws/src
+```
+
+Expected ROS distribution:
+
+```text
+kilted
+```
+
+The compose file currently uses `network_mode: host` and `privileged: true` to
+get the first hardware-connected version working. Tighten privileges after the
+image runs correctly.
+
+## Builder Troubleshooting
+
+If a private `git clone` fails with `Permission denied (publickey)` but
+`ssh -T git@github.com` works on the Mac, the active Buildx builder may not be
+receiving SSH forwarding.
 
 Check builders:
 
@@ -75,24 +141,13 @@ Check builders:
 docker buildx ls
 ```
 
-The active builder has `*`. If a custom builder such as `mymultiarchbuilder*` is active, switch to Docker Desktop's default context/builder:
+The active builder has `*`. If a custom builder such as `mymultiarchbuilder*` is
+active, switch to Docker Desktop's default context/builder and rerun the build:
 
 ```sh
 docker context use default
 docker buildx use default
 ```
-
-Then rerun the build command above.
-
-If needed, switch back to Docker Desktop's context:
-
-```sh
-docker context use desktop-linux
-docker buildx use desktop-linux
-```
-
-
-
 
 ## Package Build Patches
 
@@ -110,57 +165,6 @@ During image build, `rosdep install` runs as root because it may need to install
 - `gazebo_ros_pkgs` from `linorobot2_gazebo`
 
 Those packages remain in the source tree, but their unresolved rosdep keys do not block the first image build.
-
-## Run
-
-```sh
-docker compose run --rm dome
-```
-
-Or run the built image directly:
-
-```sh
-docker run --rm -it dome-docker:dome-kilted bash
-```
-
-Smoke tests inside the container:
-
-```sh
-echo $ROS_DISTRO
-ros2 --help
-ls ~/ros2_ws/src
-```
-
-The compose file currently uses `network_mode: host` and `privileged: true` to get the first hardware-connected version working. Tighten privileges after the image runs correctly.
-
-## Host Setup
-
-On a freshly flashed Pi:
-
-```sh
-sudo ./host-setup.sh
-```
-
-Default user provisioning:
-
-- User: `pitosalas`
-- Default password: `daniel`
-- Override with `PITOSALAS_PASSWORD` if desired:
-
-```sh
-sudo PITOSALAS_PASSWORD='new-password' ./host-setup.sh
-```
-
-Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.
-Review them before use. To restore reviewed `config.txt` and `cmdline.txt` on a
-Pi, copy them into ignored `host-files/boot/firmware/` and run:
-
-```sh
-sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
-```
-
-Do not commit real `user-data` or `network-config` files with password hashes or
-Wi-Fi credentials.
 
 ## SSH Repositories
 
