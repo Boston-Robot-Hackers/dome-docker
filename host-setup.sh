@@ -61,6 +61,7 @@ apt-get install -y \
   curl \
   git \
   gnupg \
+  make \
   net-tools \
   openssh-server \
   ripgrep \
