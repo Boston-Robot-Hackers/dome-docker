@@ -171,19 +171,21 @@ ssh pitosalas@dome.local
 cd ~/dome-docker
 ```
 
-If the Docker Hub image is private, log in first:
+Log in to Docker Hub (required — image is private):
 
 ```sh
 docker login
 ```
 
-Pull and run the container:
+Source config, then pull and run:
 
 ```sh
 source ./dome-config.sh
 docker compose pull dome
 docker compose run --rm dome
 ```
+
+> **Note:** `source ./dome-config.sh` sets `DOME_IMAGE`, `DOME_USER`, and `DOME_PASSWORD`. Without it, Compose falls back to placeholder values and `docker compose pull` will fail with "pull access denied".
 
 ---
 
@@ -205,25 +207,39 @@ Expected: `ROS_DISTRO` prints `kilted`, `ros2 --help` shows usage.
 
 After the initial setup, the turnaround for code changes is:
 
-```
-1. Edit code or manifest/repos.txt on the Mac
-2. ./mac-build-overlay.sh          ← on Mac
-3. docker compose pull dome         ← on Pi
-4. docker compose run --rm dome
+**On Mac:**
+```sh
+# When manifest/packages.txt or Dockerfile.base changes (slow — full ROS rebuild):
+source ./dome-config.sh
+./mac-build-base.sh
+
+# When code, repos, or Dockerfile changes (fast — uses cached base):
+source ./dome-config.sh
+./mac-build-overlay.sh
 ```
 
-Only rerun `./mac-build-base.sh` if `manifest/packages.txt` changes.
+**On Pi:**
+```sh
+cd ~/dome-docker
+source ./dome-config.sh
+docker compose pull dome
+docker compose run --rm dome
+```
+
+Rule of thumb:
+- Changed `manifest/packages.txt` or `Dockerfile.base` → rebuild base then overlay
+- Changed anything else → overlay only
 
 ---
 
 ## Troubleshooting
 
-**"Cannot connect to Docker daemon"** — Docker Desktop not running. Start it:
+**"Cannot connect to Docker daemon"** — Docker Desktop not running:
 ```sh
 open -a Docker
 ```
 
-**`host-setup.sh` fails with "Could not resolve host: github.com"** — transient DNS failure. Rerun the script:
+**`host-setup.sh` fails with "Could not resolve host: github.com"** — transient DNS failure, rerun:
 ```sh
 sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
@@ -241,3 +257,26 @@ docker context use default
 docker buildx use default
 ./mac-build-overlay.sh
 ```
+
+**`docker compose pull` fails with "pull access denied" on Pi** — `DOME_IMAGE` not set. Always source config first:
+```sh
+source ./dome-config.sh
+docker compose pull dome
+```
+
+**Mac build push fails with "use of closed network connection"** — Docker Desktop proxy bug. Restart Docker Desktop, then retry. If it keeps failing:
+```sh
+# build and push are separate steps
+docker buildx build --platform linux/arm64 --load ... -t pitosalas/dome-docker:latest .
+docker push pitosalas/dome-docker:latest
+```
+
+**Overlay build is all CACHED but changes not included** — base image is stale. Rebuild base first:
+```sh
+source ./dome-config.sh
+./mac-build-base.sh   # pushes new base
+./mac-build-overlay.sh
+```
+Then on Pi: `source ./dome-config.sh && docker compose pull dome && docker compose run --rm dome`
+
+**Doppler not available inside container** — was it added before or after the last base build? Rebuild base (see above).
