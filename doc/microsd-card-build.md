@@ -140,6 +140,8 @@ host-files/etc/netplan/
 
 ## 7. Run Host Setup
 
+This installs Docker, creates the Pi user, and configures the system.
+
 Basic setup:
 
 ```sh
