@@ -5,13 +5,13 @@ FROM ${DOME_BASE_IMAGE}
 SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV ROS_DISTRO=kilted
+ARG ROS_DISTRO=kilted
+ENV ROS_DISTRO=${ROS_DISTRO}
 ARG DOME_USER=robot
 ARG DOME_PASSWORD=""
-ARG DOME_ROOT_REPOS="https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git seeed-linux-dtoverlays;https://github.com/raspberrypi/libcamera-apps.git libcamera-apps"
-ARG DOME_ROS_REPOS="https://github.com/dfki-ric/better_launch.git better_launch;https://github.com/hippo5329/ldlidar_stl_ros2.git ldlidar_stl_ros2;https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent;https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs;https://github.com/christianrauch/camera_ros.git camera_ros"
-ARG DOME_UROS_REPOS="https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent;https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs"
 ENV DOME_HOME=/home/${DOME_USER}
+
+COPY manifest/ /manifest/
 
 RUN useradd -m -s /bin/bash "${DOME_USER}" && \
     if [[ -n "${DOME_PASSWORD}" ]]; then echo "${DOME_USER}:${DOME_PASSWORD}" | chpasswd; fi && \
@@ -28,22 +28,18 @@ WORKDIR ${DOME_HOME}
 RUN mkdir -p -m 0700 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 RUN --mount=type=ssh \
-    clone_repos() { \
-      local base_dir="$1"; \
-      local entries="$2"; \
+    clone_section() { \
+      local section="$1"; \
+      local base_dir="$2"; \
       mkdir -p "${base_dir}"; \
-      if [[ -n "${entries}" ]]; then \
-        while IFS= read -r entry; do \
-          [[ -z "${entry}" ]] && continue; \
-          local repo="${entry%% *}"; \
-          local dest="${entry#* }"; \
-          git clone "${repo}" "${base_dir}/${dest}"; \
-        done < <(tr ';' '\n' <<<"${entries}"); \
-      fi; \
+      while read -r repo dest; do \
+        [[ -z "${repo}" ]] && continue; \
+        git clone "${repo}" "${base_dir}/${dest}"; \
+      done < <(awk -v s="${section}" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' /manifest/repos.txt); \
     }; \
-    clone_repos "${DOME_HOME}" "${DOME_ROOT_REPOS}"; \
-    clone_repos "${DOME_HOME}/ros2_ws/src" "${DOME_ROS_REPOS}"; \
-    clone_repos "${DOME_HOME}/uros_ws/src" "${DOME_UROS_REPOS}"; \
+    clone_section root "${DOME_HOME}"; \
+    clone_section ros_ws "${DOME_HOME}/ros2_ws/src"; \
+    clone_section uros_ws "${DOME_HOME}/uros_ws/src"; \
     chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 
 USER root
@@ -61,11 +57,11 @@ RUN find "${DOME_HOME}/ros2_ws/src" -type d \
     chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 USER ${DOME_USER}
 
-RUN source /opt/ros/kilted/setup.bash && \
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     cd "${DOME_HOME}/ros2_ws" && \
     colcon build --symlink-install
 
-RUN echo 'source /opt/ros/kilted/setup.bash' >> "${DOME_HOME}/.bashrc" && \
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> "${DOME_HOME}/.bashrc" && \
     echo "source ${DOME_HOME}/ros2_ws/install/setup.bash" >> "${DOME_HOME}/.bashrc" && \
     echo 'if command -v mcfly >/dev/null 2>&1; then eval "$(mcfly init bash)"; fi' >> "${DOME_HOME}/.bashrc" && \
     if [[ -f "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" ]]; then ln -sf "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" "${DOME_HOME}/.ros2_robot_bashrc.bash" && echo "source ${DOME_HOME}/.ros2_robot_bashrc.bash" >> "${DOME_HOME}/.bashrc"; fi && \

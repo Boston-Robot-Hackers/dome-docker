@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Builds the Docker image on the Raspberry Pi. Generates an SSH key if needed,
+# verifies GitHub access, builds the base image if absent, then builds the overlay.
 set -euo pipefail
 
 if [[ -f ./dome-config.sh ]]; then
@@ -6,9 +8,12 @@ if [[ -f ./dome-config.sh ]]; then
   source ./dome-config.sh
 fi
 
+_MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
+ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)
+
 KEY_PATH="${DOME_SSH_KEY:-${HOME}/.ssh/id_ed25519}"
 KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-${USER:-robot}@$(hostname -s 2>/dev/null || echo dome)}"
-DOME_BASE_IMAGE="${DOME_BASE_IMAGE:-dome-docker-base:kilted}"
+DOME_BASE_IMAGE="${DOME_BASE_IMAGE:-dome-docker-base:${ROS_DISTRO}}"
 
 if ! command -v docker >/dev/null 2>&1; then
   cat >&2 <<'EOF'
@@ -68,7 +73,10 @@ EOF
 fi
 
 if ! docker image inspect "${DOME_BASE_IMAGE}" >/dev/null 2>&1; then
-  DOCKER_BUILDKIT=1 docker build -f Dockerfile.base -t "${DOME_BASE_IMAGE}" .
+  DOCKER_BUILDKIT=1 docker build \
+    --build-arg "ROS_DISTRO=${ROS_DISTRO}" \
+    -f Dockerfile.base \
+    -t "${DOME_BASE_IMAGE}" .
 fi
 
 DOCKER_BUILDKIT=1 docker compose build --ssh default

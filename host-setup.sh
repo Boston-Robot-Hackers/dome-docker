@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Host provisioning script: installs Docker, creates the robot user, sets up
+# udev/netplan/boot firmware, and builds the ReSpeaker dtoverlay. Run as root.
 set -euo pipefail
 
 if [[ "${EUID}" -ne 0 ]]; then
@@ -131,6 +133,23 @@ if [[ "${RESTORE_BOOT_FIRMWARE:-0}" == "1" ]]; then
   fi
 else
   echo "Skipping /boot/firmware restore. Set RESTORE_BOOT_FIRMWARE=1 to copy reviewed boot files."
+fi
+
+apt-get install -y flex bison libssl-dev bc libncurses5-dev libncursesw5-dev
+
+OVERLAY_DTBO=/boot/firmware/overlays/respeaker-2mic-v2_0.dtbo
+if [[ ! -f "${OVERLAY_DTBO}" ]]; then
+  SEEED_DIR="$(mktemp -d)"
+  git clone https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git "${SEEED_DIR}"
+  make -C "${SEEED_DIR}" overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo
+  install -m 0644 "${SEEED_DIR}/overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo" "${OVERLAY_DTBO}"
+  rm -rf "${SEEED_DIR}"
+  if ! grep -q 'dtoverlay=respeaker-2mic-v2_0' /boot/firmware/config.txt; then
+    echo "dtoverlay=respeaker-2mic-v2_0" >> /boot/firmware/config.txt
+  fi
+  echo "ReSpeaker overlay installed. Reboot required."
+else
+  echo "ReSpeaker overlay already present; skipping."
 fi
 
 echo "Host setup complete. Log out and back in for docker group membership to apply."

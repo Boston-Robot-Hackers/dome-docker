@@ -1,0 +1,28 @@
+[root]
+https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git seeed-linux-dtoverlays
+https://github.com/raspberrypi/libcamera-apps.git libcamera-apps
+git@github.com:campusrover/rosutils.git rosutils
+https://github.com/respeaker/mic_hat.git mic_hat
+https://github.com/luxonis/depthai-python.git depthai-python
+https://github.com/pitosalas/linorobot2_hardware.git linorobot2_hardware
+
+[ros_ws]
+https://github.com/dfki-ric/better_launch.git better_launch
+https://github.com/christianrauch/camera_ros.git camera_ros
+https://github.com/slgrobotics/depthai_rospi.git depthai_rospi
+git@github.com:campusrover/dome.git dome
+git@github.com:Boston-Robot-Hackers/dome2.git dome2
+git@github.com:Boston-Robot-Hackers/dome_control.git dome_control
+git@github.com:Boston-Robot-Hackers/dome_vision.git dome_vision
+git@github.com:Boston-Robot-Hackers/dome_voice.git dome_voice
+git@github.com:Boston-Robot-Hackers/explore.git explore
+https://github.com/hippo5329/ldlidar_stl_ros2.git ldlidar_stl_ros2
+git@github.com:pitosalas/linorobot2.git linorobot2
+https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent
+https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs
+git@github.com:Boston-Robot-Hackers/ros2diag.git ros2diag
+git@github.com:pitosalas/status_panel.git status_panel
+
+[uros_ws]
+https://github.com/micro-ROS/micro-ROS-Agent.git micro-ROS-Agent
+https://github.com/micro-ROS/micro_ros_msgs.git micro_ros_msgs
