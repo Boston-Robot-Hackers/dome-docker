@@ -30,4 +30,8 @@ RUN apt-get install -y apt-transport-https gnupg && \
     apt-get update && apt-get install -y doppler && \
     rm -rf /var/lib/apt/lists/*
 
+RUN if grep -q '^[^#[:space:]]' /manifest/pip.txt 2>/dev/null; then \
+      awk '/^[^#[:space:]]/ && NF' /manifest/pip.txt | xargs pip3 install --break-system-packages; \
+    fi
+
 RUN rosdep init || true

@@ -64,11 +64,13 @@ RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     cd "${DOME_HOME}/ros2_ws" && \
     colcon build --symlink-install --packages-skip depthai_rospi
 
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> "${DOME_HOME}/.bashrc" && \
-    echo "source ${DOME_HOME}/ros2_ws/install/setup.bash" >> "${DOME_HOME}/.bashrc" && \
-    echo 'if command -v mcfly >/dev/null 2>&1; then eval "$(mcfly init bash)"; fi' >> "${DOME_HOME}/.bashrc" && \
-    if [[ -f "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" ]]; then ln -sf "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" "${DOME_HOME}/.ros2_robot_bashrc.bash" && echo "source ${DOME_HOME}/.ros2_robot_bashrc.bash" >> "${DOME_HOME}/.bashrc"; fi && \
-    if [[ -f "${DOME_HOME}/rosutils/common_alias.bash" ]]; then echo "source ${DOME_HOME}/rosutils/common_alias.bash" >> "${DOME_HOME}/.bashrc"; fi && \
+RUN if [[ -f "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" ]]; then \
+      cp "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" "${DOME_HOME}/.bashrc"; \
+    else \
+      echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> "${DOME_HOME}/.bashrc" && \
+      echo "source ${DOME_HOME}/ros2_ws/install/setup.bash" >> "${DOME_HOME}/.bashrc" && \
+      echo 'if command -v mcfly >/dev/null 2>&1; then eval "$(mcfly init bash)"; fi' >> "${DOME_HOME}/.bashrc"; \
+    fi && \
     if [[ -f "${DOME_HOME}/rosutils/bru.py" ]]; then ln -s "${DOME_HOME}/rosutils/bru.py" "${DOME_HOME}/.local/bin/bru" && chmod +x "${DOME_HOME}/rosutils/bru.py"; fi
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
