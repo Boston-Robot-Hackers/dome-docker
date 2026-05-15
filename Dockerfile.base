@@ -21,4 +21,13 @@ RUN apt-get update && \
 # Dockerfile RUN steps execute as root, so the host-side "sudo sh" form is not needed here.
 RUN curl -LSfs https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh | sh -s -- --git cantino/mcfly
 
+RUN apt-get install -y apt-transport-https gnupg && \
+    curl -sLf --retry 3 --tlsv1.2 --proto "=https" \
+      'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key' \
+      | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] https://packages.doppler.com/public/cli/deb/debian any-version main" \
+      > /etc/apt/sources.list.d/doppler-cli.list && \
+    apt-get update && apt-get install -y doppler && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN rosdep init || true
