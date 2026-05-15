@@ -100,8 +100,11 @@ sudo apt update
 sudo apt install -y git ca-certificates
 git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
 cd dome-docker
-nano manifest/user.txt
-cp dome-config.example.sh dome-config.sh
+# Create manifest/user.txt — gitignored, must be created manually:
+cat > manifest/user.txt <<EOF
+DOCKERHUB_USERNAME=pitosalas
+DOME_USER=pitosalas
+EOF
 source ./dome-config.sh
 ```
 

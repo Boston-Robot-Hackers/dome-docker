@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# Copy this file to dome-config.sh and edit it for your robot before running
-# host setup or Docker builds:
+# Source this file before running host setup or Docker builds:
 #
-#   cp dome-config.example.sh dome-config.sh
-#   nano dome-config.sh
+#   nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
 #   source ./dome-config.sh
 
 _MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"

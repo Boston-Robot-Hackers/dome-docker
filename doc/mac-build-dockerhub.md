@@ -11,9 +11,12 @@ The image is split into two layers:
 - `DOME_IMAGE`: overlay image with robot repos cloned and built. Rebuild for
   every code/repo change.
 
-## 1. Configure
+## Prerequisites
 
-You need a free [Docker Hub](https://hub.docker.com) account. Your username appears top-right after login (e.g. `pitosalas`).
+- **Docker Desktop** installed and running on the Mac. Download from [docs.docker.com/desktop/mac/install](https://docs.docker.com/desktop/mac/install/). After install, open it and wait for the whale icon to appear in the menu bar.
+- **Docker Hub account** (free) at [hub.docker.com](https://hub.docker.com). Your username appears top-right after login (e.g. `pitosalas`).
+
+## 1. Configure
 
 Edit `manifest/user.txt` — no shell scripting needed:
 
@@ -42,7 +45,7 @@ Then on the Mac:
 
 ```sh
 cd ~/mydev/dome-docker
-cp dome-config.example.sh dome-config.sh
+source ./dome-config.sh
 ```
 
 Image tags are derived from `manifest/config.txt` automatically. Make sure your
@@ -82,13 +85,24 @@ source ./dome-config.sh
 
 ## 4. Pull And Run On The Pi
 
-**Pi must be set up first.** If you haven't done this yet, follow `microsd-card-build.md` steps 1–7 (flash Ubuntu, SSH in, clone repo, run host setup, reboot). Then come back here.
+**Pi must be set up first.** If you haven't done this yet, follow `microsd-card-build.md` steps 1–7 (flash Ubuntu, SSH in, clone repo, run host setup, reboot). Step 7 installs Docker on the Pi. Then come back here.
 
-On the Pi, edit `manifest/user.txt` with the same `DOCKERHUB_USERNAME`:
+On the Pi, create `manifest/user.txt` — it is gitignored and won't exist after cloning, so create it with the same values as on the Mac:
 
 ```sh
-nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
-cp dome-config.example.sh dome-config.sh
+nano manifest/user.txt
+```
+
+Add these lines:
+
+```
+DOCKERHUB_USERNAME=pitosalas
+DOME_USER=pitosalas
+```
+
+Then:
+
+```sh
 source ./dome-config.sh
 ```
 

@@ -72,14 +72,13 @@ For the password, set it as an environment variable before building (keeps it ou
 export DOME_PASSWORD=yourpassword
 ```
 
-Then copy and source the config:
+Then source the config:
 
 ```sh
-cp dome-config.example.sh dome-config.sh
 source ./dome-config.sh
 ```
 
-Do not commit `dome-config.sh` or `manifest/user.txt`.
+Do not commit `manifest/user.txt`.
 
 Before publishing a repository that previously contained personal paths,
 private repository names, passwords, or other local details, rewrite or recreate
