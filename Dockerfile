@@ -59,7 +59,7 @@ USER ${DOME_USER}
 
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     cd "${DOME_HOME}/ros2_ws" && \
-    colcon build --symlink-install
+    colcon build --symlink-install --packages-skip depthai_rospi
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> "${DOME_HOME}/.bashrc" && \
     echo "source ${DOME_HOME}/ros2_ws/install/setup.bash" >> "${DOME_HOME}/.bashrc" && \

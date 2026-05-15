@@ -100,8 +100,8 @@ sudo apt update
 sudo apt install -y git ca-certificates
 git clone https://github.com/Boston-Robot-Hackers/dome-docker.git dome-docker
 cd dome-docker
+nano manifest/user.txt
 cp dome-config.example.sh dome-config.sh
-nano dome-config.sh
 source ./dome-config.sh
 ```
 

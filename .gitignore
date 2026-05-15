@@ -6,6 +6,7 @@ runtime-data/
 host-files/
 local-cloud-init/
 dome-config.sh
+manifest/user.txt
 
 # Local editor and OS files
 .DS_Store

@@ -55,30 +55,31 @@ Ignored local directories:
 
 ## Local Configuration
 
-Copy the example config and edit it for your robot:
+Edit `manifest/user.txt` for your personal settings — this file is gitignored so it stays local:
+
+```sh
+nano manifest/user.txt
+```
+
+Key settings in `manifest/user.txt`:
+
+- `DOCKERHUB_USERNAME`: your Docker Hub username (hub.docker.com — shown top-right after login).
+- `DOME_USER`: Linux user created on the Pi host and inside the Docker image.
+
+For the password, set it as an environment variable before building (keeps it out of files entirely):
+
+```sh
+export DOME_PASSWORD=yourpassword
+```
+
+Then copy and source the config:
 
 ```sh
 cp dome-config.example.sh dome-config.sh
-nano dome-config.sh
 source ./dome-config.sh
 ```
 
-Important settings:
-
-- `DOME_USER`: Linux user on the Pi host and inside the Docker image.
-- `DOME_PASSWORD`: optional password for `DOME_USER`; leave empty to preserve a
-  cloud-init or Raspberry Pi Imager host password and avoid baking a password
-  into the Docker image.
-- `DOME_BASE_IMAGE`: reusable base image; derived automatically from
-  `manifest/config.txt` if not set.
-- `DOME_IMAGE`: overlay image; derived automatically from `manifest/config.txt`
-  if not set.
-- `DOME_DOCKER_REPO_URL`: URL used to clone this setup repo on a fresh Pi.
-
-Packages and repositories cloned during the Docker build are declared in
-`manifest/` — edit those files rather than `dome-config.sh`.
-
-Do not commit `dome-config.sh`.
+Do not commit `dome-config.sh` or `manifest/user.txt`.
 
 Before publishing a repository that previously contained personal paths,
 private repository names, passwords, or other local details, rewrite or recreate

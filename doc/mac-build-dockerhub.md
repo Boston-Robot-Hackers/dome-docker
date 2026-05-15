@@ -13,19 +13,36 @@ The image is split into two layers:
 
 ## 1. Configure
 
-On the Mac:
+You need a free [Docker Hub](https://hub.docker.com) account. Your username appears top-right after login (e.g. `pitosalas`).
+
+Edit `manifest/user.txt` — no shell scripting needed:
+
+```sh
+nano manifest/user.txt
+```
+
+Set your values:
+
+```
+DOCKERHUB_USERNAME=pitosalas
+DOME_USER=pitosalas
+```
+
+`DOME_USER` is the Linux username created on the Pi host and inside the Docker image.
+
+For the password, set it as an environment variable before building (keeps it out of committed files):
+
+```sh
+export DOME_PASSWORD=yourpassword
+```
+
+> **Note:** The password is baked into the Docker image and may appear in build logs. Do not commit real passwords to a public repo.
+
+Then on the Mac:
 
 ```sh
 cd ~/mydev/dome-docker
 cp dome-config.example.sh dome-config.sh
-nano dome-config.sh
-```
-
-Set `DOME_IMAGE` to your Docker Hub repository:
-
-```sh
-export DOME_BASE_IMAGE="docker.io/YOUR_DOCKERHUB_USERNAME/dome-base"
-export DOME_IMAGE="docker.io/YOUR_DOCKERHUB_USERNAME/dome-docker"
 ```
 
 Image tags are derived from `manifest/config.txt` automatically. Make sure your
@@ -43,6 +60,8 @@ ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ```
 
 ## 2. Build And Push The Base
+
+Make sure Docker Desktop is running (`open -a Docker`) — you'll get a "cannot connect to Docker daemon" error if it's not.
 
 Do this once, then only when `manifest/packages.txt` changes:
 
@@ -63,12 +82,14 @@ source ./dome-config.sh
 
 ## 4. Pull And Run On The Pi
 
-On the Pi, set the same `DOME_IMAGE` value in `dome-config.sh`, then:
+**Pi must be set up first.** If you haven't done this yet, follow `microsd-card-build.md` steps 1–7 (flash Ubuntu, SSH in, clone repo, run host setup, reboot). Then come back here.
+
+On the Pi, edit `manifest/user.txt` with the same `DOCKERHUB_USERNAME`:
 
 ```sh
+nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
+cp dome-config.example.sh dome-config.sh
 source ./dome-config.sh
-docker compose pull dome
-docker compose run --rm --no-build dome
 ```
 
 If the Docker Hub repository is private, log in first:
@@ -77,11 +98,11 @@ If the Docker Hub repository is private, log in first:
 docker login
 ```
 
-The Pi still needs host setup run once before pulling:
+Then pull and run:
 
 ```sh
-sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
-sudo reboot
+docker compose pull dome
+docker compose run --rm --no-build dome
 ```
 
 ## Turnaround Cycle
