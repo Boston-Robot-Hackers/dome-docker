@@ -11,23 +11,9 @@ The system is split into two layers:
   `ros:<distro>-ros-base-<ubuntu>` base, with robot source repositories cloned
   and built during the Docker image build.
 
-## Which Runbook To Use
+## Getting Started
 
-- `doc/microsd-card-build.md`
-  - Use this for the normal path.
-  - Starts with a microSD card attached to a Mac.
-  - Covers erasing/formatting the card, flashing Ubuntu with Raspberry Pi
-    Imager, copying boot firmware templates, booting the Pi, running host setup,
-    building the Docker image, and smoke testing.
-- `doc/mac-prebuilt-microsd.md`
-  - Use this when you want to build the arm64 Docker image on the Mac before the
-    Pi boots.
-  - Pushes the image to a registry, writes cloud-init files to the boot
-    partition, then lets the Pi install Docker, clone this repo, and pull the
-    prebuilt image on first boot.
-- `doc/mac-build-dockerhub.md`
-  - **Preferred for active development.** Mac builds arm64 image fast, Pi just
-    pulls. Fastest turnaround cycle.
+See `doc/setup-and-run.md` — single end-to-end runbook from blank microSD to running container.
 
 ## Repository Layout
 

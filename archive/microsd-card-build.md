@@ -193,7 +193,7 @@ If `DOME_IMAGE` points to a pushed Docker Hub image:
 
 ```sh
 docker compose pull dome
-docker compose run --rm --no-build dome
+docker compose run --rm dome
 ```
 
 Fallback: build directly on the Pi.
@@ -221,7 +221,7 @@ DOCKER_BUILDKIT=1 docker buildx build \
 ## 9. Run The Container
 
 ```sh
-docker compose run --rm --no-build dome
+docker compose run --rm dome
 ```
 
 Smoke tests inside the container:

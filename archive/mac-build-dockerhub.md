@@ -116,7 +116,7 @@ Then pull and run:
 
 ```sh
 docker compose pull dome
-docker compose run --rm --no-build dome
+docker compose run --rm dome
 ```
 
 ## Turnaround Cycle
@@ -125,7 +125,7 @@ docker compose run --rm --no-build dome
 edit manifest/repos.txt or robot code
 → ./mac-build-overlay.sh          # on Mac
 → docker compose pull dome         # on Pi
-→ docker compose run --rm --no-build dome
+→ docker compose run --rm dome
 ```
 
 Only run `./mac-build-base.sh` again if `manifest/packages.txt` changes.
