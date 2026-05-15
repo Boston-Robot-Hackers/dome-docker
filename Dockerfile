@@ -15,6 +15,9 @@ COPY manifest/ /manifest/
 
 RUN useradd -m -s /bin/bash "${DOME_USER}" && \
     if [[ -n "${DOME_PASSWORD}" ]]; then echo "${DOME_USER}:${DOME_PASSWORD}" | chpasswd; fi && \
+    usermod -aG sudo "${DOME_USER}" && \
+    echo "${DOME_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DOME_USER} && \
+    chmod 0440 /etc/sudoers.d/${DOME_USER} && \
     mkdir -p \
       "${DOME_HOME}/.local/bin" \
       "${DOME_HOME}/.ros/camera_info" \
