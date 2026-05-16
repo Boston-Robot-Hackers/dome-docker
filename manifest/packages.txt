@@ -15,6 +15,7 @@ nano
 netcat-openbsd
 ninja-build
 openssh-client
+portaudio19-dev
 python3-click
 python3-colcon-common-extensions
 python3-docstring-parser
