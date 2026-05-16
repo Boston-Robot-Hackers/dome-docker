@@ -100,13 +100,21 @@ systemctl enable docker
 systemctl start docker
 usermod -aG docker "${USERNAME}"
 
+install -m 0755 -d /etc/udev/rules.d
+_udev_installed=0
+if [[ -d ./host-file-templates/etc/udev/rules.d ]]; then
+  install -m 0644 ./host-file-templates/etc/udev/rules.d/*.rules /etc/udev/rules.d/
+  _udev_installed=1
+fi
 if [[ -d ./host-files/etc/udev/rules.d ]]; then
-  install -m 0755 -d /etc/udev/rules.d
   install -m 0644 ./host-files/etc/udev/rules.d/*.rules /etc/udev/rules.d/
+  _udev_installed=1
+fi
+if [[ "${_udev_installed}" -eq 1 ]]; then
   udevadm control --reload-rules
   udevadm trigger
 else
-  echo "No ./host-files/etc/udev/rules.d directory found; skipping custom udev restore."
+  echo "No udev rules found in host-file-templates or host-files; skipping."
 fi
 
 if [[ -d ./host-files/etc/netplan ]]; then
@@ -151,6 +159,37 @@ if [[ ! -f "${OVERLAY_DTBO}" ]]; then
   echo "ReSpeaker overlay installed. Reboot required."
 else
   echo "ReSpeaker overlay already present; skipping."
+fi
+
+DOME_DIR="/home/${USERNAME}/dome-docker"
+if [[ -d "${DOME_DIR}" ]]; then
+  mkdir -p \
+    "${DOME_DIR}/runtime-data/ros" \
+    "${DOME_DIR}/runtime-data/control"
+  chown -R "${USERNAME}:${USERNAME}" "${DOME_DIR}/runtime-data"
+
+  # Generate dome.env (plain KEY=VALUE) for use by dome.service EnvironmentFile.
+  MANIFEST_DIR="${DOME_DIR}/manifest"
+  DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2)
+  ROS_DISTRO_VAL=$(grep '^ROS_DISTRO=' "${MANIFEST_DIR}/config.txt" 2>/dev/null | cut -d= -f2)
+  cat > "${DOME_DIR}/dome.env" <<EOF
+DOME_USER=${USERNAME}
+DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
+DOME_BASE_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-base
+DOME_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-docker
+ROS_DISTRO=${ROS_DISTRO_VAL}
+EOF
+  chmod 0600 "${DOME_DIR}/dome.env"
+  chown "${USERNAME}:${USERNAME}" "${DOME_DIR}/dome.env"
+
+  SERVICE_SRC="${DOME_DIR}/host-file-templates/etc/systemd/system/dome.service"
+  if [[ -f "${SERVICE_SRC}" ]]; then
+    sed "s/@@DOME_USER@@/${USERNAME}/g" "${SERVICE_SRC}" > /etc/systemd/system/dome.service
+    chmod 0644 /etc/systemd/system/dome.service
+    systemctl daemon-reload
+    systemctl enable dome
+    echo "dome.service installed and enabled."
+  fi
 fi
 
 echo "Host setup complete. Log out and back in for docker group membership to apply."

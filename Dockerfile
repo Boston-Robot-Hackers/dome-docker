@@ -25,6 +25,8 @@ RUN useradd -m -s /bin/bash "${DOME_USER}" && \
       "${DOME_HOME}/.control/logs" \
       "${DOME_HOME}/ros2_ws/src" \
       "${DOME_HOME}/uros_ws/src" && \
+    touch "${DOME_HOME}/.bash_history" && \
+    chmod 600 "${DOME_HOME}/.bash_history" && \
     chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 WORKDIR ${DOME_HOME}
 
@@ -35,9 +37,13 @@ RUN --mount=type=ssh \
       local section="$1"; \
       local base_dir="$2"; \
       mkdir -p "${base_dir}"; \
-      while read -r repo dest; do \
+      while read -r repo dest branch; do \
         [[ -z "${repo}" ]] && continue; \
-        git clone "${repo}" "${base_dir}/${dest}"; \
+        if [[ -n "${branch}" ]]; then \
+          git clone --branch "${branch}" "${repo}" "${base_dir}/${dest}"; \
+        else \
+          git clone "${repo}" "${base_dir}/${dest}"; \
+        fi; \
       done < <(awk -v s="${section}" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' /manifest/repos.txt); \
     }; \
     clone_section root "${DOME_HOME}"; \

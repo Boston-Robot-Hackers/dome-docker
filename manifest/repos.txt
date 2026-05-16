@@ -7,9 +7,8 @@ https://github.com/luxonis/depthai-python.git depthai-python
 https://github.com/pitosalas/linorobot2_hardware.git linorobot2_hardware
 
 [ros_ws]
-https://github.com/dfki-ric/better_launch.git better_launch
+https://github.com/dfki-ric/better_launch.git better_launch devel
 https://github.com/christianrauch/camera_ros.git camera_ros
-https://github.com/slgrobotics/depthai_rospi.git depthai_rospi
 git@github.com:campusrover/dome.git dome
 git@github.com:Boston-Robot-Hackers/dome2.git dome2
 git@github.com:Boston-Robot-Hackers/dome_control.git dome_control

@@ -1,0 +1,16 @@
+[Unit]
+Description=Dome ROS2 Docker container
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+User=@@DOME_USER@@
+WorkingDirectory=/home/@@DOME_USER@@/dome-docker
+EnvironmentFile=/home/@@DOME_USER@@/dome-docker/dome.env
+ExecStartPre=/usr/bin/docker compose pull dome
+ExecStart=/usr/bin/docker compose run --rm dome
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -189,7 +189,31 @@ docker compose run --rm dome
 
 ---
 
-## Part 6: Smoke Test
+## Part 6: Pi — Auto-start Container On Boot (Optional)
+
+Install the systemd service so the container starts automatically on reboot:
+
+```sh
+sudo cp ~/dome-docker/host-file-templates/etc/systemd/system/dome.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable dome
+sudo systemctl start dome
+```
+
+Check it's running:
+```sh
+sudo systemctl status dome
+journalctl -u dome -f
+```
+
+To disable auto-start:
+```sh
+sudo systemctl disable dome
+```
+
+---
+
+## Part 7: Smoke Test
 
 Inside the container:
 
@@ -262,6 +286,20 @@ docker buildx use default
 ```sh
 source ./dome-config.sh
 docker compose pull dome
+```
+
+**Base or overlay push fails with network error, timeout, or connection reset** — often transient. Steps:
+1. Check network connection is up
+2. Verify Docker Desktop is current version (Docker Desktop → Check for Updates)
+3. Restart Docker Desktop and wait for whale icon to stop animating
+4. Retry the same build script — most failures are transient and clear on second run
+
+If push still fails after restart:
+```sh
+# build and push as separate steps
+docker buildx build --platform linux/arm64 --push -t pitosalas/dome-base:latest -f Dockerfile.base .
+# or for overlay:
+docker buildx build --platform linux/arm64 --push -t pitosalas/dome-docker:latest .
 ```
 
 **Mac build push fails with "use of closed network connection"** — Docker Desktop proxy bug. Restart Docker Desktop, then retry. If it keeps failing:
