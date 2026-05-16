@@ -27,7 +27,13 @@ RUN apt-get install -y apt-transport-https gnupg && \
       | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] https://packages.doppler.com/public/cli/deb/debian any-version main" \
       > /etc/apt/sources.list.d/doppler-cli.list && \
-    apt-get update && apt-get install -y doppler && \
+    curl -fsSL --retry 3 --tlsv1.2 --proto "=https" \
+      'https://cli.github.com/packages/githubcli-archive-keyring.gpg' \
+      -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && apt-get install -y doppler gh && \
     rm -rf /var/lib/apt/lists/*
 
 RUN if grep -q '^[^#[:space:]]' /manifest/pip.txt 2>/dev/null; then \

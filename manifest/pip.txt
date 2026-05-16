@@ -1,3 +1,74 @@
 # Python packages installed via pip3 in the base image.
 # One package per line. Comments and blank lines ignored.
+#
+# Categories:
+#   CLEARLY REQUIRED   - known hard dependency for robot operation
+#   LIKELY REQUIRED    - used by installed ROS pkgs or hardware drivers
+#   NOT REQUIRED       - covered by apt or no robot use case found
+#   RECOMMEND NOT DO   - too large, dev-only, or conflicts with apt packages
 
+# CLEARLY REQUIRED — Pi hardware interfaces
+RPi.GPIO
+spidev
+PyAudio
+
+# CLEARLY REQUIRED — camera pipeline (OAK/depthai hardware in use)
+depthai
+depthai-nodes
+depthai-sdk
+blobconverter
+PyTurboJPEG
+simplejpeg
+roboflowoak
+
+# CLEARLY REQUIRED — HTTP / web (status_panel uses Flask; requests used everywhere)
+Flask
+requests
+itsdangerous
+Werkzeug
+blinker
+charset-normalizer
+urllib3
+
+# LIKELY REQUIRED — data validation (pydantic used by depthai-sdk and others)
+pydantic
+pydantic_core
+annotated-types
+typing-inspection
+typing_extensions
+
+# LIKELY REQUIRED — general utilities used across workspace packages
+numpy
+networkx
+python-dotenv
+xmltodict
+marshmallow
+filelock
+fsspec
+Qt.py
+
+# LIKELY REQUIRED — ROS workspace deps not covered by apt
+sympy
+mpmath
+
+# LIKELY REQUIRED — depthai pipeline visualization (dev/debug tool, low cost)
+depthai-pipeline-graph
+
+# NOT REQUIRED — already installed via apt (python3-docstring-parser)
+# docstring_parser
+
+# NOT REQUIRED — no robot use case; YouTube download utility
+# pytube
+
+# NOT REQUIRED — error monitoring service; not needed in robot image
+# sentry-sdk
+
+# NOT REQUIRED — type stubs, dev/IDE use only
+# types-PySide6
+
+# NOT REQUIRED — type checker CLI, dev use only
+# ty
+
+# RECOMMEND NOT DO — 500MB+ each; bloats base image; add in overlay if ML needed
+# torch
+# torchvision
