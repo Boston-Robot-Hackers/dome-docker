@@ -37,7 +37,7 @@ RUN apt-get install -y apt-transport-https gnupg && \
     rm -rf /var/lib/apt/lists/*
 
 RUN if grep -q '^[^#[:space:]]' /manifest/pip.txt 2>/dev/null; then \
-      awk '/^[^#[:space:]]/ && NF' /manifest/pip.txt | xargs pip3 install --break-system-packages; \
+      awk '/^[^#[:space:]]/ && NF' /manifest/pip.txt | xargs pip3 install --break-system-packages --ignore-installed; \
     fi
 
 RUN rosdep init || true
