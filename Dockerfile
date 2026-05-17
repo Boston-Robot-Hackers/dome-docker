@@ -33,16 +33,18 @@ WORKDIR ${DOME_HOME}
 RUN mkdir -p -m 0700 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 RUN --mount=type=ssh \
+    set -euo pipefail; \
     clone_section() { \
       local section="$1"; \
       local base_dir="$2"; \
       mkdir -p "${base_dir}"; \
       while read -r repo dest branch; do \
         [[ -z "${repo}" ]] && continue; \
+        echo "Cloning ${repo} -> ${base_dir}/${dest}"; \
         if [[ -n "${branch}" ]]; then \
-          git clone --branch "${branch}" "${repo}" "${base_dir}/${dest}"; \
+          git clone --branch "${branch}" "${repo}" "${base_dir}/${dest}" || { echo "ERROR: failed to clone ${repo}"; exit 1; }; \
         else \
-          git clone "${repo}" "${base_dir}/${dest}"; \
+          git clone "${repo}" "${base_dir}/${dest}" || { echo "ERROR: failed to clone ${repo}"; exit 1; }; \
         fi; \
       done < <(awk -v s="${section}" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' /manifest/repos.txt); \
     }; \
