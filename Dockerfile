@@ -54,6 +54,10 @@ RUN --mount=type=ssh \
     chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 
 USER root
+RUN if [[ -f "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/pyproject.toml" ]]; then \
+      pip3 install --break-system-packages "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/"; \
+    fi
+
 RUN if [[ -f "${DOME_HOME}/ros2_ws/src/oak_roboflow/setup.py" ]]; then \
       python3 -c 'import os; from pathlib import Path; p=Path(os.environ["DOME_HOME"]) / "ros2_ws/src/oak_roboflow/setup.py"; s=p.read_text(); s=s.replace("from setuptools import setup", "from setuptools import setup, find_packages"); s=s.replace("setup(\n    data_files=", "setup(\n    packages=find_packages(include=[\"oak_roboflow\", \"oak_roboflow.*\"]),\n    data_files="); p.write_text(s)'; \
     fi
@@ -82,8 +86,9 @@ RUN if [[ -f "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" ]]; then \
     if [[ -f "${DOME_HOME}/rosutils/bru.py" ]]; then ln -s "${DOME_HOME}/rosutils/bru.py" "${DOME_HOME}/.local/bin/bru" && chmod +x "${DOME_HOME}/rosutils/bru.py"; fi
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY install-ml-deps.sh /usr/local/bin/install-ml-deps.sh
 USER root
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/install-ml-deps.sh
 USER ${DOME_USER}
 WORKDIR ${DOME_HOME}/ros2_ws
 

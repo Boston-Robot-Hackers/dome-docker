@@ -230,6 +230,18 @@ Expected: `ROS_DISTRO` prints `kilted`, `ros2 --help` shows usage.
 
 ---
 
+## Part 8: ML Dependencies (Optional)
+
+`dome_vision` ML features (object embedding, world tracker) require `torch` and `torchvision` (~1GB). These are not baked into the image to keep it lean. Install on demand inside the container:
+
+```sh
+install-ml-deps.sh
+```
+
+First run takes 10-15 minutes on Pi. Safe to re-run — skips already-installed packages. Not needed unless running `dome_vision_ros`.
+
+---
+
 ## Development Cycle
 
 After the initial setup, the turnaround for code changes is:

@@ -163,6 +163,16 @@ During image build, `rosdep install` runs as root because it may need to install
 
 Those packages remain in the source tree, but their unresolved rosdep keys do not block the first image build.
 
+## ML Dependencies
+
+`torch` and `torchvision` are not baked into the image (~1GB, arm64). Required only for `dome_vision` ML features. Install on demand inside the container:
+
+```sh
+install-ml-deps.sh
+```
+
+Safe to re-run. Takes 10-15 min on first install.
+
 ## SSH Repositories
 
 The Dockerfile uses SSH GitHub URLs for private/internal repos. SSH keys are
