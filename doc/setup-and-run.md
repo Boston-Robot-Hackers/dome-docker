@@ -75,7 +75,7 @@ source ./dome-config.sh
 ./mac-build-base.sh
 ```
 
-This builds a `linux/arm64` ROS base image and pushes it to `docker.io/pitosalas/dome-base:kilted`.
+This builds a `linux/arm64` ROS base image and pushes it to `docker.io/<DOCKERHUB_USERNAME>/dome-base:<ROS_DISTRO>`.
 
 **Build the overlay image** (do for every code or repo change):
 
@@ -86,7 +86,7 @@ ssh-add -l   # must show a key
 ./mac-build-overlay.sh
 ```
 
-This clones robot repos, runs `colcon build`, and pushes to `docker.io/pitosalas/dome-docker:dome-kilted`.
+This clones robot repos, runs `colcon build`, and pushes to `docker.io/<DOCKERHUB_USERNAME>/dome-docker:dome-<ROS_DISTRO>`.
 
 ---
 
@@ -230,15 +230,23 @@ Expected: `ROS_DISTRO` prints `kilted`, `ros2 --help` shows usage.
 
 ---
 
-## Part 8: ML Dependencies (Optional)
+## Part 8: Optional Large Dependencies
 
-`dome_vision` ML features (object embedding, world tracker) require `torch` and `torchvision` (~1GB). These are not baked into the image to keep it lean. Install on demand inside the container:
+Some features require large packages not baked into the image. Install on demand inside the container:
 
 ```sh
-install-ml-deps.sh
+install-optional-deps.sh           # installs everything
+install-optional-deps.sh torch     # torch + torchvision only (~1GB, dome_vision ML)
+install-optional-deps.sh piper     # piper TTS binary + voice model (~110MB, dome_voice speech)
 ```
 
-First run takes 10-15 minutes on Pi. Safe to re-run — skips already-installed packages. Not needed unless running `dome_vision_ros`.
+Safe to re-run — skips already-installed components. `torch` install takes 10-15 min on Pi first run.
+
+After installing piper, set env vars before launching `dome_voice`:
+```sh
+export PIPER_BIN=~/.local/bin/piper
+export PIPER_MODEL_PATH=~/.local/share/piper/en_US-amy-medium.onnx
+```
 
 ---
 

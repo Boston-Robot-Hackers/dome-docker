@@ -163,15 +163,17 @@ During image build, `rosdep install` runs as root because it may need to install
 
 Those packages remain in the source tree, but their unresolved rosdep keys do not block the first image build.
 
-## ML Dependencies
+## Optional Large Dependencies
 
-`torch` and `torchvision` are not baked into the image (~1GB, arm64). Required only for `dome_vision` ML features. Install on demand inside the container:
+Large packages not baked into the image — install on demand inside the container:
 
 ```sh
-install-ml-deps.sh
+install-optional-deps.sh           # all optional deps
+install-optional-deps.sh torch     # torch + torchvision (~1GB) — needed by dome_vision ML
+install-optional-deps.sh piper     # piper TTS binary + voice model (~110MB) — needed by dome_voice speech
 ```
 
-Safe to re-run. Takes 10-15 min on first install.
+Safe to re-run. `torch` takes 10-15 min first install on Pi.
 
 ## SSH Repositories
 

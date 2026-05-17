@@ -86,9 +86,9 @@ RUN if [[ -f "${DOME_HOME}/rosutils/ros2_robot_bashrc.bash" ]]; then \
     if [[ -f "${DOME_HOME}/rosutils/bru.py" ]]; then ln -s "${DOME_HOME}/rosutils/bru.py" "${DOME_HOME}/.local/bin/bru" && chmod +x "${DOME_HOME}/rosutils/bru.py"; fi
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY install-ml-deps.sh /usr/local/bin/install-ml-deps.sh
+COPY install-optional-deps.sh /usr/local/bin/install-optional-deps.sh
 USER root
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/install-ml-deps.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/install-optional-deps.sh
 USER ${DOME_USER}
 WORKDIR ${DOME_HOME}/ros2_ws
 
