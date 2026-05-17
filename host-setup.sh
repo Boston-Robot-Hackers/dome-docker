@@ -175,8 +175,8 @@ if [[ -d "${DOME_DIR}" ]]; then
   cat > "${DOME_DIR}/dome.env" <<EOF
 DOME_USER=${USERNAME}
 DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
-DOME_BASE_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-base
-DOME_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-docker
+DOME_BASE_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-base:${ROS_DISTRO_VAL}
+DOME_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-docker:dome-${ROS_DISTRO_VAL}
 ROS_DISTRO=${ROS_DISTRO_VAL}
 EOF
   chmod 0600 "${DOME_DIR}/dome.env"

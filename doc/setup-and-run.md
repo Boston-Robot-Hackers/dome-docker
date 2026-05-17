@@ -75,15 +75,18 @@ source ./dome-config.sh
 ./mac-build-base.sh
 ```
 
-This builds a `linux/arm64` ROS base image and pushes it to `docker.io/pitosalas/dome-base`.
+This builds a `linux/arm64` ROS base image and pushes it to `docker.io/pitosalas/dome-base:kilted`.
 
 **Build the overlay image** (do for every code or repo change):
 
+Confirm your GitHub SSH key is loaded — private repos (`rosutils`, `dome`, `dome2`, etc.) are cloned via SSH during the build. If the key is missing, the build fails immediately with `ERROR: failed to clone ...`.
+
 ```sh
+ssh-add -l   # must show a key
 ./mac-build-overlay.sh
 ```
 
-This clones robot repos, runs `colcon build`, and pushes to `docker.io/pitosalas/dome-docker`.
+This clones robot repos, runs `colcon build`, and pushes to `docker.io/pitosalas/dome-docker:dome-kilted`.
 
 ---
 
@@ -275,7 +278,15 @@ sudo resolvectl flush-caches
 sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
-**SSH key not forwarded during Mac build (`Permission denied (publickey)`):**
+**SSH key not forwarded during Mac build (`Permission denied (publickey)` or `ERROR: failed to clone`):**
+
+First confirm the key is loaded:
+```sh
+ssh-add -l
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519   # if not listed
+```
+
+If key is loaded but build still fails, the active Buildx builder may not be receiving SSH forwarding. Switch to the default builder:
 ```sh
 docker context use default
 docker buildx use default
@@ -296,17 +307,18 @@ docker compose pull dome
 
 If push still fails after restart:
 ```sh
-# build and push as separate steps
-docker buildx build --platform linux/arm64 --push -t pitosalas/dome-base:latest -f Dockerfile.base .
+source ./dome-config.sh
+# build and push as separate steps — base:
+docker buildx build --platform linux/arm64 --push -t "${DOME_BASE_IMAGE}" -f Dockerfile.base .
 # or for overlay:
-docker buildx build --platform linux/arm64 --push -t pitosalas/dome-docker:latest .
+docker buildx build --platform linux/arm64 --push -t "${DOME_IMAGE}" .
 ```
 
 **Mac build push fails with "use of closed network connection"** — Docker Desktop proxy bug. Restart Docker Desktop, then retry. If it keeps failing:
 ```sh
-# build and push are separate steps
-docker buildx build --platform linux/arm64 --load ... -t pitosalas/dome-docker:latest .
-docker push pitosalas/dome-docker:latest
+source ./dome-config.sh
+docker buildx build --platform linux/arm64 --load -t "${DOME_IMAGE}" .
+docker push "${DOME_IMAGE}"
 ```
 
 **Overlay build is all CACHED but changes not included** — base image is stale. Rebuild base first:

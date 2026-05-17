@@ -122,8 +122,14 @@ Then log out and back in so Docker group membership applies.
 
 ## Builder Troubleshooting
 
-If a private `git clone` fails with `Permission denied (publickey)` but
-`ssh -T git@github.com` works on the Mac, the active Buildx builder may not be
+If a private `git clone` fails with `Permission denied (publickey)` or
+`ERROR: failed to clone` but `ssh -T git@github.com` works on the Mac,
+either the SSH key is not loaded or the active Buildx builder is not receiving
+SSH forwarding.
+
+First confirm the key is loaded: `ssh-add -l`. If missing: `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`.
+
+If the key is present but clones still fail, the active Buildx builder may not be
 receiving SSH forwarding.
 
 Check builders:
@@ -161,6 +167,13 @@ Those packages remain in the source tree, but their unresolved rosdep keys do no
 
 The Dockerfile uses SSH GitHub URLs for private/internal repos. SSH keys are
 forwarded during build via `--mount=type=ssh` and are not copied into the image.
+If any clone fails, the build aborts immediately with `ERROR: failed to clone <url>`.
+Load your key before building:
+
+```sh
+ssh-add -l                                        # confirm key is present
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519    # load if missing
+```
 
 - Host udev rules, netplan, and `/boot/firmware` belong on the Pi host, not in
   the container.

@@ -23,7 +23,7 @@ services:
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
       RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
     volumes:
-      - /dev/bus/usb:/dev/bus/usb
+      - /dev:/dev
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./runtime-data/ros:/home/${DOME_USER:-robot}/.ros
       - ./runtime-data/control:/home/${DOME_USER:-robot}/.control
