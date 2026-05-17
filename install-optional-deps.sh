@@ -8,8 +8,8 @@ DOME_HOME="${DOME_HOME:-$HOME}"
 # --- ML: torch + torchvision (required by dome_vision) ---
 # ~1GB download, 10-15 min on Pi first run
 install_torch() {
-  echo "Installing torch and torchvision..."
-  pip3 install --break-system-packages torch torchvision
+  echo "Installing torch and torchvision (CPU-only, arm64)..."
+  pip3 install --break-system-packages torch torchvision --index-url https://download.pytorch.org/whl/cpu
   echo "Installing dome_vision package..."
   pip3 install --break-system-packages "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/"
   echo "torch/torchvision done."

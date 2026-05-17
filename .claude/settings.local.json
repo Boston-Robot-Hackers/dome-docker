@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/pitosalas/mydev/dome_vision/dome_vision/**)"
+      "Read(//Users/pitosalas/mydev/dome_vision/dome_vision/**)",
+      "Bash(git *)"
     ]
   }
 }

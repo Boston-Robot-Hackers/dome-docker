@@ -55,6 +55,7 @@ RUN --mount=type=ssh \
 
 USER root
 RUN if [[ -f "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/pyproject.toml" ]]; then \
+      rm -f "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/setup.py"; \
       pip3 install --break-system-packages "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/"; \
     fi
 
