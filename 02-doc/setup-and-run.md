@@ -149,7 +149,7 @@ DOME_USER=pitosalas
 EOF
 ```
 
-Run host setup — this installs Docker, creates the Pi user, and configures the system:
+Run host setup — installs Docker, creates the Pi user, configures udev, and installs `dome.service`:
 
 ```sh
 export DOME_USER=pitosalas
@@ -157,7 +157,13 @@ export DOME_PASSWORD=yourpassword
 sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
 ```
 
-When it prints `Host setup complete`, reboot:
+Seed runtime data from the live system (maps, configs, survey data):
+
+```sh
+./seed-runtime-data.sh
+```
+
+When host setup prints `Host setup complete`, reboot:
 
 ```sh
 sudo reboot
@@ -194,22 +200,15 @@ docker compose run --rm dome
 
 ## Part 6: Pi — Auto-start Container On Boot (Optional)
 
-Install the systemd service so the container starts automatically on reboot:
+`host-setup.sh` installs and enables `dome.service` automatically. To check status:
 
-```sh
-sudo cp ~/dome-docker/host-file-templates/etc/systemd/system/dome.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable dome
-sudo systemctl start dome
-```
-
-Check it's running:
 ```sh
 sudo systemctl status dome
 journalctl -u dome -f
 ```
 
 To disable auto-start:
+
 ```sh
 sudo systemctl disable dome
 ```
@@ -349,4 +348,3 @@ source ./dome-config.sh
 ```
 Then on Pi: `source ./dome-config.sh && docker compose pull dome && docker compose run --rm dome`
 
-**Doppler not available inside container** — was it added before or after the last base build? Rebuild base (see above).

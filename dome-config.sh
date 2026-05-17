@@ -11,7 +11,7 @@ _DOME_USER=$(grep '^DOME_USER=' "${_MANIFEST_DIR}/user.txt" | cut -d= -f2)
 _ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)
 
 # User created or configured on the Pi host and inside the Docker image.
-export DOME_USER="${DOME_USER:-${_DOME_USER:-robot}}"
+export DOME_USER="${DOME_USER:-${_DOME_USER}}"
 
 # Optional password for DOME_USER. Leave empty to preserve an existing host
 # password from cloud-init or Raspberry Pi Imager. If used for Docker image
@@ -29,4 +29,4 @@ export DOME_DOCKER_REPO_URL="${DOME_DOCKER_REPO_URL:-https://github.com/Boston-R
 
 # SSH key settings used by pi-build.sh.
 export DOME_SSH_KEY="${DOME_SSH_KEY:-${HOME}/.ssh/id_ed25519}"
-export DOME_SSH_KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-${USER:-robot}@$(hostname -s 2>/dev/null || echo dome)}"
+export DOME_SSH_KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-${USER}@$(hostname -s)}"

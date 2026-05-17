@@ -3,10 +3,8 @@
 # Reads ROS_DISTRO and UBUNTU_CODENAME from manifest/config.txt.
 set -euo pipefail
 
-if [[ -f ./dome-config.sh ]]; then
-  # shellcheck disable=SC1091
-  source ./dome-config.sh
-fi
+# shellcheck disable=SC1091
+source ./dome-config.sh
 
 _MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
 ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)

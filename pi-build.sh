@@ -3,10 +3,8 @@
 # verifies GitHub access, builds the base image if absent, then builds the overlay.
 set -euo pipefail
 
-if [[ -f ./dome-config.sh ]]; then
-  # shellcheck disable=SC1091
-  source ./dome-config.sh
-fi
+# shellcheck disable=SC1091
+source ./dome-config.sh
 
 _MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
 ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)
@@ -42,11 +40,8 @@ if [[ ! -f "${KEY_PATH}" ]]; then
   ssh-keygen -t ed25519 -C "${KEY_COMMENT}" -f "${KEY_PATH}"
 fi
 
-if [[ ! -f "${KEY_PATH}.pub" ]]; then
-  ssh-keygen -y -f "${KEY_PATH}" >"${KEY_PATH}.pub"
-fi
 
-ssh-keyscan github.com >>"${HOME}/.ssh/known_hosts" 2>/dev/null || true
+ssh-keyscan github.com >>"${HOME}/.ssh/known_hosts"
 sort -u "${HOME}/.ssh/known_hosts" -o "${HOME}/.ssh/known_hosts"
 chmod 600 "${HOME}/.ssh/known_hosts"
 

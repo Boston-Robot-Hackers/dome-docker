@@ -18,39 +18,11 @@ default_network_interface() {
 
 check_network_ready() {
   if ! ip route get 1.1.1.1 >/dev/null 2>&1; then
-    cat >&2 <<'EOF'
-Network is not ready: no route to the internet.
-Check Wi-Fi/Ethernet and netplan before rerunning this script.
-EOF
+    echo "Network is not ready: no route to the internet." >&2
     exit 1
   fi
-
   if ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
-    local interface
-    interface="$(default_network_interface)"
-    if [[ -n "${interface}" ]] && command -v resolvectl >/dev/null 2>&1; then
-      echo "DNS is not returning an IPv4 address for ${DOCKER_APT_HOST}; applying fallback DNS on ${interface}."
-      resolvectl dns "${interface}" 1.1.1.1 8.8.8.8
-      resolvectl domain "${interface}" '~.'
-      resolvectl flush-caches
-    fi
-  fi
-
-  if ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
-    cat >&2 <<EOF
-DNS is not returning an IPv4 address for ${DOCKER_APT_HOST}.
-Check the Pi's DNS configuration, then rerun this script.
-
-Useful checks:
-  resolvectl status
-  ping -c 3 1.1.1.1
-  getent ahostsv4 ${DOCKER_APT_HOST}
-
-Temporary DNS fix:
-  sudo resolvectl dns <interface> 1.1.1.1 8.8.8.8
-  sudo resolvectl domain <interface> '~.'
-  sudo resolvectl flush-caches
-EOF
+    echo "DNS not resolving ${DOCKER_APT_HOST}. Check DNS config and rerun." >&2
     exit 1
   fi
 }
@@ -162,34 +134,31 @@ else
 fi
 
 DOME_DIR="/home/${USERNAME}/dome-docker"
-if [[ -d "${DOME_DIR}" ]]; then
-  mkdir -p \
-    "${DOME_DIR}/runtime-data/ros" \
-    "${DOME_DIR}/runtime-data/control"
-  chown -R "${USERNAME}:${USERNAME}" "${DOME_DIR}/runtime-data"
+mkdir -p \
+  "${DOME_DIR}/runtime-data/ros" \
+  "${DOME_DIR}/runtime-data/control" \
+  "${DOME_DIR}/runtime-data/dome"
+chown -R "${USERNAME}:${USERNAME}" "${DOME_DIR}/runtime-data"
 
-  # Generate dome.env (plain KEY=VALUE) for use by dome.service EnvironmentFile.
-  MANIFEST_DIR="${DOME_DIR}/manifest"
-  DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2)
-  ROS_DISTRO_VAL=$(grep '^ROS_DISTRO=' "${MANIFEST_DIR}/config.txt" 2>/dev/null | cut -d= -f2)
-  cat > "${DOME_DIR}/dome.env" <<EOF
+# Generate dome.env (plain KEY=VALUE) for use by dome.service EnvironmentFile.
+MANIFEST_DIR="${DOME_DIR}/manifest"
+DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${MANIFEST_DIR}/user.txt" | cut -d= -f2)
+ROS_DISTRO_VAL=$(grep '^ROS_DISTRO=' "${MANIFEST_DIR}/config.txt" | cut -d= -f2)
+cat > "${DOME_DIR}/dome.env" <<EOF
 DOME_USER=${USERNAME}
 DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
 DOME_BASE_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-base:${ROS_DISTRO_VAL}
 DOME_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-docker:dome-${ROS_DISTRO_VAL}
 ROS_DISTRO=${ROS_DISTRO_VAL}
 EOF
-  chmod 0600 "${DOME_DIR}/dome.env"
-  chown "${USERNAME}:${USERNAME}" "${DOME_DIR}/dome.env"
+chmod 0600 "${DOME_DIR}/dome.env"
+chown "${USERNAME}:${USERNAME}" "${DOME_DIR}/dome.env"
 
-  SERVICE_SRC="${DOME_DIR}/host-file-templates/etc/systemd/system/dome.service"
-  if [[ -f "${SERVICE_SRC}" ]]; then
-    sed "s/@@DOME_USER@@/${USERNAME}/g" "${SERVICE_SRC}" > /etc/systemd/system/dome.service
-    chmod 0644 /etc/systemd/system/dome.service
-    systemctl daemon-reload
-    systemctl enable dome
-    echo "dome.service installed and enabled."
-  fi
-fi
+SERVICE_SRC="${DOME_DIR}/host-file-templates/etc/systemd/system/dome.service"
+sed "s/@@DOME_USER@@/${USERNAME}/g" "${SERVICE_SRC}" > /etc/systemd/system/dome.service
+chmod 0644 /etc/systemd/system/dome.service
+systemctl daemon-reload
+systemctl enable dome
+echo "dome.service installed and enabled."
 
 echo "Host setup complete. Log out and back in for docker group membership to apply."

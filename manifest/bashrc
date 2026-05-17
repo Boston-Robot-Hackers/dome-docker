@@ -1,0 +1,15 @@
+source ~/rosutils/ros2_robot_bashrc.bash
+
+export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+# Dome
+export DOME_CAMERA=oak
+export DOME_PIPER_MODEL_PATH=$HOME/ros2_ws/src/dome_control/piper_model/en_US-lessac-medium.onnx
+export DOME_PIPER_BIN=$HOME/ros2_ws/src/dome_control/bin/piper/piper
+export DOME_VOICE_CONFIG=$HOME/ros2_ws/src/dome_voice/config/voice_config.yaml
+export DOME_VISION_CONFIG=$HOME/ros2_ws/src/dome_vision/dome_vision_ros/config/roboflow_oak.yaml
+export DOME_SPIN_SURVEY_MAP=~/.dome/spin_survey_map.json
