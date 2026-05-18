@@ -3,6 +3,12 @@ inventory/
 
 # Runtime state mounted by compose
 runtime-data/
+!runtime-data/control/
+!runtime-data/control/**
+!runtime-data/dome/
+!runtime-data/dome/**
+!runtime-data/config/
+!runtime-data/config/**
 host-files/
 local-cloud-init/
 manifest/user.txt

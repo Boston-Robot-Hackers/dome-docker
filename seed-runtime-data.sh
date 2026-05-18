@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# seed-runtime-data.sh — copy ~/.control and ~/.dome into runtime-data/ for container use.
+# seed-runtime-data.sh — populate runtime-data/ from dotfiles for container volume mounts.
 # Safe to re-run: skips files that already exist in destination.
 # Author: Pito Salas and Claude Code
 # Open Source Under MIT license
@@ -7,13 +7,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(dirname "$0")"
-DST_CONTROL="$SCRIPT_DIR/runtime-data/control"
-DST_DOME="$SCRIPT_DIR/runtime-data/dome"
+SRC="${SCRIPT_DIR}/runtime-data"
 
-mkdir -p "$DST_CONTROL" "$DST_DOME"
-
-mkdir -p ~/.control ~/.dome
-rsync -a --ignore-existing ~/.control/ "$DST_CONTROL/"
-rsync -a --ignore-existing ~/.dome/ "$DST_DOME/"
-
-echo "Done."
+echo "runtime-data/ is already seeded in the repo. Nothing to do."
+echo "To update maps or config, edit files under runtime-data/ directly."

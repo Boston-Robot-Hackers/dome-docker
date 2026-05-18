@@ -28,6 +28,7 @@ services:
       - ./runtime-data/ros:/home/${DOME_USER:-robot}/.ros
       - ./runtime-data/control:/home/${DOME_USER:-robot}/.control
       - ./runtime-data/dome:/home/${DOME_USER:-robot}/.dome
+      - ./runtime-data/config:/home/${DOME_USER:-robot}/.config
     device_cgroup_rules:
       - 'c 189:* rmw'
     devices:
