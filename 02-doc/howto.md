@@ -71,10 +71,3 @@ DOME_USER=pitosalas
 EOF
 ```
 
-### Run tests
-
-```sh
-bash tests/test_f01_manifest.sh
-```
-
-All tests should pass before proceeding with either build path.
