@@ -14,10 +14,11 @@ MANIFEST_DIR="${SCRIPT_DIR}/manifest"
 source "${MANIFEST_DIR}/lib.sh"
 
 ROS_DISTRO=$(manifest_config ROS_DISTRO "${MANIFEST_DIR}/config.txt")
-DOME_USER=$(manifest_config DOME_USER "${MANIFEST_DIR}/config.txt")
-# Allow user.txt to override DOME_USER
-_USER_OVERRIDE=$(grep '^DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 || true)
-[[ -n "${_USER_OVERRIDE}" ]] && DOME_USER="${_USER_OVERRIDE}"
+_DOME_USER_DEFAULT=$(manifest_config DOME_USER "${MANIFEST_DIR}/config.txt")
+_DOME_USER_FILE=$(grep '^DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 || true)
+# Priority: env var > user.txt > config.txt default
+DOME_USER="${DOME_USER:-${_DOME_USER_FILE:-${_DOME_USER_DEFAULT}}}"
+echo "==> DOME_USER='${DOME_USER}' (from: env=${DOME_USER:-} file=${_DOME_USER_FILE} default=${_DOME_USER_DEFAULT})"
 
 DOME_HOME="/home/${DOME_USER}"
 
