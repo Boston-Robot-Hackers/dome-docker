@@ -16,60 +16,81 @@ source "${MANIFEST_DIR}/lib.sh"
 ROS_DISTRO=$(manifest_config ROS_DISTRO "${MANIFEST_DIR}/config.txt")
 UBUNTU_CODENAME=$(manifest_config UBUNTU_CODENAME "${MANIFEST_DIR}/config.txt")
 
+echo "==> Starting bare-metal-base.sh"
 echo "==> ROS_DISTRO=${ROS_DISTRO}  UBUNTU_CODENAME=${UBUNTU_CODENAME}"
+echo ""
 
 # --- Locale ---
-echo "==> Setting locale"
+echo "==> [1/8] Setting locale"
 apt-get install -y locales
 locale-gen en_US en_US.UTF-8
 update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 export LANG=en_US.UTF-8
+echo "==> [1/8] Locale done"
 
 # --- ROS 2 apt repository ---
-echo "==> Adding ROS 2 apt repository"
+echo ""
+echo "==> [2/8] Adding ROS 2 apt repository"
 apt-get install -y software-properties-common curl gnupg apt-transport-https
+echo "  adding universe..."
 add-apt-repository -y universe
+echo "  fetching ROS signing key..."
 curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
     -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
 http://packages.ros.org/ros2/ubuntu ${UBUNTU_CODENAME} main" \
     > /etc/apt/sources.list.d/ros2.list
+echo "  running apt-get update..."
 apt-get update
+echo "==> [2/8] ROS 2 repo done"
 
 # --- ROS base install ---
-echo "==> Installing ros-${ROS_DISTRO}-ros-base"
+echo ""
+echo "==> [3/8] Installing ros-${ROS_DISTRO}-ros-base (slow — 5-15 min)"
 apt-get install -y "ros-${ROS_DISTRO}-ros-base"
+echo "==> [3/8] ROS base done"
 
 # --- apt packages from manifest/packages.txt ---
-echo "==> Installing apt packages"
-awk '/^\[apt\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt" \
-    | xargs apt-get install -y --no-install-recommends
+echo ""
+echo "==> [4/8] Installing apt packages from manifest/packages.txt"
+APT_PKGS=$(awk '/^\[apt\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt")
+echo "  packages: $(echo "$APT_PKGS" | wc -l) items"
+echo "$APT_PKGS" | xargs apt-get install -y --no-install-recommends
+echo "==> [4/8] apt packages done"
 
 # --- ROS packages from manifest/packages.txt ---
-echo "==> Installing ROS packages"
-awk -v d="${ROS_DISTRO}" \
+echo ""
+echo "==> [5/8] Installing ROS packages from manifest/packages.txt"
+ROS_PKGS=$(awk -v d="${ROS_DISTRO}" \
     '/^\[ros\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/{print "ros-"d"-"$0}' \
-    "${MANIFEST_DIR}/packages.txt" \
-    | xargs apt-get install -y --no-install-recommends
+    "${MANIFEST_DIR}/packages.txt")
+echo "  packages: $(echo "$ROS_PKGS" | wc -l) items"
+echo "$ROS_PKGS" | xargs apt-get install -y --no-install-recommends
+echo "==> [5/8] ROS packages done"
 
 # --- curl-installed tools from manifest/tools.txt ---
-echo "==> Installing curl tools"
+echo ""
+echo "==> [6/8] Installing curl tools from manifest/tools.txt"
 for sect in $(manifest_sections "${MANIFEST_DIR}/tools.txt"); do
     method=$(manifest_require "$sect" method "${MANIFEST_DIR}/tools.txt")
     url=$(manifest_require "$sect" url "${MANIFEST_DIR}/tools.txt")
     args=$(manifest_field "$sect" args "${MANIFEST_DIR}/tools.txt")
+    echo "  installing [$sect] via $method..."
     if [[ "$method" == "curl-sh" ]]; then
-        curl -LSfs "$url" | sudo sh -s -- $args
+        curl -LSfs "$url" | sh -s -- $args
     else
         echo "ERROR: unknown tool method '$method' for [$sect]" >&2
         exit 1
     fi
 done
+echo "==> [6/8] curl tools done"
 
 # --- third-party apt repos from manifest/apt-repos.txt ---
-echo "==> Adding third-party apt repositories"
+echo ""
+echo "==> [7/8] Adding third-party apt repositories from manifest/apt-repos.txt"
 arch=$(dpkg --print-architecture)
 for sect in $(manifest_sections "${MANIFEST_DIR}/apt-repos.txt"); do
+    echo "  setting up [$sect]..."
     key_url=$(manifest_require "$sect" key_url "${MANIFEST_DIR}/apt-repos.txt")
     key_file=$(manifest_require "$sect" key_file "${MANIFEST_DIR}/apt-repos.txt")
     key_dearmor=$(manifest_require "$sect" key_dearmor "${MANIFEST_DIR}/apt-repos.txt")
@@ -83,24 +104,34 @@ for sect in $(manifest_sections "${MANIFEST_DIR}/apt-repos.txt"); do
         chmod go+r "$key_file"
     fi
     echo "$list" > "/etc/apt/sources.list.d/${sect}.list"
+    echo "  [$sect] repo added"
 done
+echo "  running apt-get update..."
 apt-get update
+echo "  installing packages from apt-repos..."
 awk '/^\[/{next} /^packages[[:space:]]*=/{sub(/^packages[[:space:]]*=[[:space:]]*/,""); print}' \
     "${MANIFEST_DIR}/apt-repos.txt" \
     | tr ' ' '\n' | grep -v '^$' | xargs apt-get install -y
+echo "==> [7/8] third-party repos done"
 
 # --- pip packages from manifest/pip.txt ---
-echo "==> Installing pip packages"
+echo ""
+echo "==> [8/8] Installing pip packages from manifest/pip.txt"
 if grep -q '^[^#[:space:]]' "${MANIFEST_DIR}/pip.txt" 2>/dev/null; then
-    awk '/^[^#[:space:]]/ && NF' "${MANIFEST_DIR}/pip.txt" \
-        | xargs pip3 install --break-system-packages --ignore-installed
+    PIP_PKGS=$(awk '/^[^#[:space:]]/ && NF' "${MANIFEST_DIR}/pip.txt")
+    echo "  packages: $(echo "$PIP_PKGS" | wc -l) items"
+    echo "$PIP_PKGS" | xargs pip3 install --break-system-packages --ignore-installed
 fi
+echo "==> [8/8] pip packages done"
 
 # --- rosdep ---
+echo ""
 echo "==> Initialising rosdep"
 rosdep init || true
+echo "==> rosdep init done"
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
-echo "==> bare-metal-base.sh complete"
+echo ""
+echo "==> bare-metal-base.sh complete. Run bare-metal-build.sh next."
