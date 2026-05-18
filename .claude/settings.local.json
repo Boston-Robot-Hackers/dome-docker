@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//Users/pitosalas/mydev/dome_vision/dome_vision/**)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(chmod +x /Users/pitosalas/mydev/dome-docker/bare-metal-base.sh)",
+      "Bash(bash -n /Users/pitosalas/mydev/dome-docker/bare-metal-base.sh)"
     ]
   }
 }
