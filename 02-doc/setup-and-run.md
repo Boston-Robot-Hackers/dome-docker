@@ -140,6 +140,8 @@ git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
 cd ~/dome-docker
 ```
 
+> **All following commands assume you are in `~/dome-docker`.** Run them from that directory.
+
 Create `manifest/user.txt` (gitignored, must be created manually after cloning):
 
 ```sh

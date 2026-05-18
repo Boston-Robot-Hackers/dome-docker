@@ -12,6 +12,7 @@ DST_DOME="$SCRIPT_DIR/runtime-data/dome"
 
 mkdir -p "$DST_CONTROL" "$DST_DOME"
 
+mkdir -p ~/.control ~/.dome
 rsync -a --ignore-existing ~/.control/ "$DST_CONTROL/"
 rsync -a --ignore-existing ~/.dome/ "$DST_DOME/"
 
