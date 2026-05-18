@@ -85,11 +85,26 @@ Runs as root. Reads from `manifest/` to:
 - Run `colcon build` with flags from `manifest/colcon.txt`
 - Install `manifest/bashrc` and `bru` symlink
 
-Requires GitHub SSH key present for private repos:
+Requires GitHub SSH key present for private repos.
+
+**Copy your key from Mac to Pi** (run this on Mac, not Pi):
 
 ```sh
-ssh-add -l                           # confirm key is loaded
-eval "$(ssh-agent -s)"               # if no agent running
+scp ~/.ssh/id_ed25519 pitosalas@dome.local:~/.ssh/id_ed25519
+scp ~/.ssh/id_ed25519.pub pitosalas@dome.local:~/.ssh/id_ed25519.pub
+```
+
+Then on Pi, set permissions and verify GitHub access:
+
+```sh
+chmod 600 ~/.ssh/id_ed25519
+ssh -T git@github.com   # expect: "Hi <user>! You've successfully authenticated"
+```
+
+Load the key into the agent:
+
+```sh
+eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 ```
 
