@@ -6,12 +6,25 @@
 #   source ./dome-config.sh
 
 _MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
-_DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${_MANIFEST_DIR}/user.txt" | cut -d= -f2)
-_DOME_USER=$(grep '^DOME_USER=' "${_MANIFEST_DIR}/user.txt" | cut -d= -f2)
-_ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)
+
+_require_field() {
+    local file="$1" key="$2"
+    local val
+    val=$(grep "^${key}=" "$file" | cut -d= -f2)
+    if [[ -z "$val" ]]; then
+        echo "ERROR: '${key}' not set in ${file}" >&2
+        return 1
+    fi
+    echo "$val"
+}
+
+_DOME_USER_DEFAULT=$(_require_field "${_MANIFEST_DIR}/config.txt" DOME_USER) || return 1
+_ROS_DISTRO=$(_require_field "${_MANIFEST_DIR}/config.txt" ROS_DISTRO) || return 1
+_DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${_MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2)
+_DOME_USER=$(grep '^DOME_USER=' "${_MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2)
 
 # User created or configured on the Pi host and inside the Docker image.
-export DOME_USER="${DOME_USER:-${_DOME_USER}}"
+export DOME_USER="${DOME_USER:-${_DOME_USER:-${_DOME_USER_DEFAULT}}}"
 
 # Optional password for DOME_USER. Leave empty to preserve an existing host
 # password from cloud-init or Raspberry Pi Imager. If used for Docker image
@@ -27,6 +40,6 @@ export DOME_IMAGE="${DOME_IMAGE:-docker.io/${_DOCKERHUB_USERNAME}/dome-docker:do
 # Repository URL for cloning this public setup repo onto a fresh Pi.
 export DOME_DOCKER_REPO_URL="${DOME_DOCKER_REPO_URL:-https://github.com/Boston-Robot-Hackers/dome-docker.git}"
 
-# SSH key settings used by pi-build.sh.
+# SSH key settings used during Docker builds.
 export DOME_SSH_KEY="${DOME_SSH_KEY:-${HOME}/.ssh/id_ed25519}"
 export DOME_SSH_KEY_COMMENT="${DOME_SSH_KEY_COMMENT:-${USER}@$(hostname -s)}"

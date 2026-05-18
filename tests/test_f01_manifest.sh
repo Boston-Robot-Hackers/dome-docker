@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# Tests for F01: manifest as single source of truth.
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MANIFEST_DIR="${REPO_DIR}/manifest"
+PASS=0
+FAIL=0
+
+pass() { echo "  PASS: $1"; PASS=$((PASS+1)); }
+fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
+
+assert_file() {
+    local f="$1"
+    [[ -f "$f" ]] && pass "exists: ${f#$REPO_DIR/}" || fail "missing: ${f#$REPO_DIR/}"
+}
+
+assert_field() {
+    local file="$1" key="$2"
+    grep -q "^${key}" "$file" && pass "${file#$REPO_DIR/} has '$key'" || fail "${file#$REPO_DIR/} missing '$key'"
+}
+
+assert_no_hardcode() {
+    local file="$1" pattern="$2" desc="$3"
+    grep -qE "$pattern" "$file" && fail "${file#$REPO_DIR/} still hardcodes: $desc" || pass "${file#$REPO_DIR/} no hardcoded $desc"
+}
+
+assert_lib_field() {
+    local section="$1" field="$2" file="$3" expected="$4"
+    source "${MANIFEST_DIR}/lib.sh"
+    local got
+    got=$(manifest_field "$section" "$field" "$file")
+    [[ "$got" == "$expected" ]] && pass "lib.sh manifest_field [$section].$field" || fail "lib.sh manifest_field [$section].$field: got='$got' expected='$expected'"
+}
+
+echo "=== F01 manifest tests ==="
+
+echo "--- Manifest files exist ---"
+assert_file "${MANIFEST_DIR}/config.txt"
+assert_file "${MANIFEST_DIR}/packages.txt"
+assert_file "${MANIFEST_DIR}/pip.txt"
+assert_file "${MANIFEST_DIR}/repos.txt"
+assert_file "${MANIFEST_DIR}/apt-repos.txt"
+assert_file "${MANIFEST_DIR}/tools.txt"
+assert_file "${MANIFEST_DIR}/colcon.txt"
+assert_file "${MANIFEST_DIR}/rosdep.txt"
+assert_file "${MANIFEST_DIR}/dirs.txt"
+assert_file "${MANIFEST_DIR}/lib.sh"
+
+echo "--- config.txt required fields ---"
+assert_field "${MANIFEST_DIR}/config.txt" "ROS_DISTRO="
+assert_field "${MANIFEST_DIR}/config.txt" "UBUNTU_CODENAME="
+assert_field "${MANIFEST_DIR}/config.txt" "DOME_USER="
+
+echo "--- apt-repos.txt sections and fields ---"
+for sect in doppler github-cli; do
+    for field in key_url key_file key_dearmor list packages; do
+        source "${MANIFEST_DIR}/lib.sh"
+        val=$(manifest_field "$sect" "$field" "${MANIFEST_DIR}/apt-repos.txt")
+        [[ -n "$val" ]] && pass "apt-repos.txt [$sect].$field set" || fail "apt-repos.txt [$sect].$field missing"
+    done
+done
+
+echo "--- colcon.txt required fields ---"
+assert_field "${MANIFEST_DIR}/colcon.txt" "flags"
+assert_field "${MANIFEST_DIR}/colcon.txt" "packages_skip"
+
+echo "--- rosdep.txt required fields ---"
+assert_field "${MANIFEST_DIR}/rosdep.txt" "skip_keys"
+
+echo "--- dirs.txt non-empty ---"
+count=$(grep -c '^[^#[:space:]]' "${MANIFEST_DIR}/dirs.txt" || true)
+[[ "$count" -gt 0 ]] && pass "dirs.txt has $count entries" || fail "dirs.txt empty"
+
+echo "--- tools.txt has mcfly ---"
+assert_field "${MANIFEST_DIR}/tools.txt" "[mcfly]"
+
+echo "--- lib.sh functions work ---"
+tmpfile=$(mktemp)
+cat > "$tmpfile" <<'EOF'
+[testsect]
+mykey = myvalue
+other = another value
+EOF
+source "${MANIFEST_DIR}/lib.sh"
+got=$(manifest_field "testsect" "mykey" "$tmpfile")
+[[ "$got" == "myvalue" ]] && pass "manifest_field basic lookup" || fail "manifest_field basic lookup: got='$got'"
+got=$(manifest_sections "$tmpfile")
+[[ "$got" == "testsect" ]] && pass "manifest_sections" || fail "manifest_sections: got='$got'"
+manifest_require "testsect" "mykey" "$tmpfile" >/dev/null && pass "manifest_require found" || fail "manifest_require found"
+( manifest_require "testsect" "nosuchkey" "$tmpfile" ) >/dev/null 2>&1 && fail "manifest_require should error on missing" || pass "manifest_require errors on missing"
+rm -f "$tmpfile"
+
+echo "--- Dockerfile.base no hardcoded apt-repo URLs ---"
+assert_no_hardcode "${REPO_DIR}/Dockerfile.base" "packages\.doppler\.com" "Doppler URL"
+assert_no_hardcode "${REPO_DIR}/Dockerfile.base" "cli\.github\.com/packages/githubcli" "GitHub CLI URL"
+assert_no_hardcode "${REPO_DIR}/Dockerfile.base" "cantino/mcfly" "mcfly URL"
+
+echo "--- Dockerfile no hardcoded manifest values ---"
+assert_no_hardcode "${REPO_DIR}/Dockerfile" "\-\-symlink-install" "colcon --symlink-install flag"
+assert_no_hardcode "${REPO_DIR}/Dockerfile" "ament_python gazebo_ros_pkgs" "rosdep skip-keys"
+assert_no_hardcode "${REPO_DIR}/Dockerfile" '\.local/bin"' "hardcoded dirs"
+
+echo "--- Bare-metal scripts syntax check ---"
+bash -n "${REPO_DIR}/bare-metal-base.sh" && pass "bare-metal-base.sh syntax" || fail "bare-metal-base.sh syntax"
+bash -n "${REPO_DIR}/bare-metal-build.sh" && pass "bare-metal-build.sh syntax" || fail "bare-metal-build.sh syntax"
+
+if command -v shellcheck >/dev/null 2>&1; then
+    shellcheck "${REPO_DIR}/bare-metal-base.sh" && pass "bare-metal-base.sh shellcheck" || fail "bare-metal-base.sh shellcheck"
+    shellcheck "${REPO_DIR}/bare-metal-build.sh" && pass "bare-metal-build.sh shellcheck" || fail "bare-metal-build.sh shellcheck"
+else
+    echo "  SKIP: shellcheck not installed"
+fi
+
+echo ""
+echo "=== Results: ${PASS} passed, ${FAIL} failed ==="
+[[ "${FAIL}" -eq 0 ]]

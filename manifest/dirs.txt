@@ -1,0 +1,8 @@
+# Home subdirectories to create under $DOME_HOME.
+# One path per line, relative to $DOME_HOME.
+.local/bin
+.ros/camera_info
+.control/maps
+.control/logs
+ros2_ws/src
+uros_ws/src

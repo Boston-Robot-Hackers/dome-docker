@@ -1,0 +1,20 @@
+# Third-party apt repositories.
+# Each section: [name], then key_url, key_file, key_dearmor, list, packages fields.
+# key_dearmor = yes: pipe key through gpg --dearmor (ASCII-armored keys).
+# key_dearmor = no:  download key directly (already binary GPG format).
+# {arch} expands to $(dpkg --print-architecture) at install time.
+# {key_file} expands to the key_file value.
+
+[doppler]
+key_url     = https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key
+key_file    = /usr/share/keyrings/doppler-archive-keyring.gpg
+key_dearmor = yes
+list        = deb [signed-by={key_file}] https://packages.doppler.com/public/cli/deb/debian any-version main
+packages    = doppler
+
+[github-cli]
+key_url     = https://cli.github.com/packages/githubcli-archive-keyring.gpg
+key_file    = /usr/share/keyrings/githubcli-archive-keyring.gpg
+key_dearmor = no
+list        = deb [arch={arch} signed-by={key_file}] https://cli.github.com/packages stable main
+packages    = gh

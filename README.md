@@ -1,155 +1,111 @@
 # Dome Docker
 
-Automation and runbooks for rebuilding the Raspberry Pi 5 dome/robot
-environment as an Ubuntu host running a ROS 2 Docker container.
+Automation and runbooks for building a ROS 2 environment on a Raspberry Pi 4 or 5
+running Ubuntu Server 24.04 LTS. Supports two build paths:
 
-The system is split into two layers:
+- **Docker** — build on Mac, push to Docker Hub, run as container on Pi
+- **Bare-metal** — install ROS natively on Pi directly from manifest scripts
 
-- Host: Raspberry Pi 5, Ubuntu Server 24.04 LTS 64-bit, Docker Engine, udev,
-  boot firmware, networking, and hardware access.
-- Container: ROS 2 (distro set in `manifest/config.txt`) on the matching
-  `ros:<distro>-ros-base-<ubuntu>` base, with robot source repositories cloned
-  and built during the Docker image build.
+Both paths read from the same `manifest/` directory — single source of truth for
+all packages, repos, build flags, and configuration.
 
 ## Getting Started
 
-See `02-doc/setup-and-run.md` — single end-to-end runbook from blank microSD to running container.
+See `02-doc/howto.md` — overview and path comparison.
+
+- `02-doc/docker-howto.md` — end-to-end Docker path (blank microSD → running container)
+- `02-doc/shell-howto.md` — end-to-end bare-metal path (blank microSD → native ROS)
 
 ## Repository Layout
 
-- `Dockerfile`: builds the ROS 2 overlay image.
-- `Dockerfile.base`: builds the reusable ROS base image.
-- `compose.yaml`: runs the container with host networking and broad device access.
-- `docker-entrypoint.sh`: sources ROS and workspace overlays before exec.
-- `host-setup.sh`: provisions the Pi host with Docker, user setup, ReSpeaker
-  overlay, optional udev/netplan restore, and optional `/boot/firmware` restore.
-- `collect-inventory.sh`: snapshots installed packages and system state to `inventory/`.
-  Run on a live Pi to capture what is actually installed for comparison against `manifest/`.
-- `seed-runtime-data.sh`: copies `~/.control` and `~/.dome` into `runtime-data/` for
-  use as container volume mounts. Run once before first container start.
-- `manifest/`: declarative configuration read by Dockerfiles and build scripts.
-  - `config.txt`: `ROS_DISTRO` and `UBUNTU_CODENAME` — change here to upgrade ROS.
-  - `packages.txt`: apt and ROS packages installed in the base image.
-  - `pip.txt`: pip packages installed in the base image.
-  - `repos.txt`: GitHub repos cloned during the overlay image build.
-  - `bashrc`: shell environment baked into the container as `~/.bashrc`.
-- `host-file-templates/`: sanitized templates for host files that may need to
-  be copied to a new Pi.
-- `02-doc/`: project documentation, architecture notes, and current status.
-- `inventory/`: snapshot of what is actually installed on a live Pi (gitignored).
+### Scripts
 
-Ignored local directories:
+| Script | Purpose |
+|---|---|
+| `bare-metal-base.sh` | Install ROS + all packages on Pi from manifest. Run as root. |
+| `bare-metal-build.sh` | Clone repos, rosdep, colcon build on Pi from manifest. Run as root. |
+| `host-setup.sh` | Provision Pi host: Docker, user, udev, boot firmware, dome.service. |
+| `dome-config.sh` | Source to set `DOME_USER`, `DOME_IMAGE`, etc. from manifest. |
+| `mac-build-base.sh` | Build and push base Docker image (Mac, cross-compile). |
+| `mac-build-overlay.sh` | Build and push overlay Docker image (Mac, cross-compile). |
+| `collect-inventory.sh` | Snapshot installed packages on live Pi to `inventory/`. |
+| `install-optional-deps.sh` | Install large optional deps (torch, piper) inside container. |
 
-- `host-files/`: reviewed host-specific files to install on a Pi.
-- `runtime-data/`: mutable container runtime state mounted by Compose.
-  - `runtime-data/ros/` → `~/.ros`
-  - `runtime-data/control/` → `~/.control`
-  - `runtime-data/dome/` → `~/.dome`
-- `local-cloud-init/`: edited cloud-init files that may contain secrets.
+### Dockerfiles
+
+| File | Purpose |
+|---|---|
+| `Dockerfile.base` | Reusable ROS base image — apt/pip/curl packages from manifest. |
+| `Dockerfile` | Overlay image — repo clones, colcon build, user setup. |
+| `compose.yaml` | Runs container with host networking and device access. |
+| `docker-entrypoint.sh` | Sources ROS and workspace overlays before exec. |
+
+### manifest/
+
+All build configuration. Neither Dockerfiles nor bare-metal scripts contain
+package names, URLs, build flags, or directory lists — those all live here.
+
+| File | Owns |
+|---|---|
+| `config.txt` | ROS_DISTRO, UBUNTU_CODENAME, DOME_USER default |
+| `packages.txt` | apt and ROS packages |
+| `pip.txt` | pip3 packages |
+| `repos.txt` | git repos to clone |
+| `apt-repos.txt` | third-party apt repositories (Doppler, GitHub CLI) |
+| `tools.txt` | curl-installed tools (mcfly) |
+| `colcon.txt` | colcon build flags and skip list |
+| `rosdep.txt` | rosdep install skip keys |
+| `dirs.txt` | home subdirectory structure |
+| `bashrc` | container shell environment |
+| `lib.sh` | shared manifest parsing helpers |
+| `user.txt` | **gitignored** — personal overrides (DOME_USER, DOCKERHUB_USERNAME, DOME_PASSWORD) |
+
+See `02-doc/manifest-format.md` for format details on each file.
+
+### Other directories
+
+| Directory | Purpose |
+|---|---|
+| `02-doc/` | Documentation, architecture notes, current status |
+| `host-file-templates/` | Sanitized templates for Pi host files (boot firmware, udev, netplan) |
+| `runtime-data/` | Container volume mounts — persists across restarts (gitignored except subdirs) |
+| `tests/` | Test scripts — run `bash tests/test_f01_manifest.sh` to verify manifest integrity |
+| `inventory/` | Live Pi package snapshot from `collect-inventory.sh` (gitignored) |
 
 ## Local Configuration
 
-Edit `manifest/user.txt` for personal settings — gitignored, stays local:
+Create `manifest/user.txt` (gitignored — never commit this):
 
 ```sh
-nano manifest/user.txt
+cat > manifest/user.txt <<EOF
+DOCKERHUB_USERNAME=your-dockerhub-username
+DOME_USER=yourname
+DOME_PASSWORD=yourpassword
+EOF
 ```
 
-Key settings:
-
-- `DOCKERHUB_USERNAME`: your Docker Hub username.
-- `DOME_USER`: Linux user created on the Pi host and inside the Docker image.
-
-Set the password as an environment variable before building (keeps it out of files):
-
-```sh
-export DOME_PASSWORD=yourpassword
-```
-
-Then source the config:
+Then source the config before any Docker build or compose command:
 
 ```sh
 source ./dome-config.sh
 ```
 
-Do not commit `manifest/user.txt`.
+## Running Tests
 
-## Shell Environment
+Verify manifest files are complete and Dockerfiles contain no hardcoded values:
 
-The container user's `~/.bashrc` is sourced from `manifest/bashrc` at image build time.
-Edit `manifest/bashrc` and rebuild the overlay to change the container shell environment.
+```sh
+bash tests/test_f01_manifest.sh
+```
 
 ## Runtime Data
 
-`runtime-data/` is mounted into the container so maps, configs, and survey data persist
-across container restarts. Seed it from the live Pi before first use:
+Container volume mounts that persist across restarts:
 
-```sh
-./seed-runtime-data.sh
-```
-
-Safe to re-run — skips files already present in the destination.
-
-## Inventory
-
-To capture what is actually installed on a live Pi:
-
-```sh
-./collect-inventory.sh
-```
-
-Output goes to `inventory/` (gitignored). Diff against `manifest/` to find gaps or extras.
-
-## Host Files And Secrets
-
-Boot firmware templates are tracked under `host-file-templates/boot/firmware/`.
-
-Real `user-data`, `network-config`, netplan files, private keys, `.env` files,
-and anything with Wi-Fi credentials or password hashes must stay out of git.
-Put reviewed local copies under ignored `host-files/` or `local-cloud-init/`.
-
-To restore reviewed boot firmware files on a Pi:
-
-```sh
-mkdir -p host-files/boot/firmware
-cp host-file-templates/boot/firmware/config.txt host-files/boot/firmware/config.txt
-cp host-file-templates/boot/firmware/cmdline.txt host-files/boot/firmware/cmdline.txt
-sudo RESTORE_BOOT_FIRMWARE=1 ./host-setup.sh
-```
-
-`host-setup.sh` backs up existing boot files as `.pre-dome-docker` before replacing them.
-
-## Builder Troubleshooting
-
-If a private `git clone` fails with `Permission denied (publickey)` during Mac build,
-confirm the SSH key is loaded: `ssh-add -l`. Load if missing:
-
-```sh
-ssh-add --apple-use-keychain ~/.ssh/id_ed25519
-```
-
-If the key is present but clones still fail, the active Buildx builder may not be
-receiving SSH forwarding. Switch to the default builder:
-
-```sh
-docker context use default
-docker buildx use default
-```
-
-## Package Build Patches
-
-The Dockerfile patches `oak_roboflow/setup.py` so setuptools explicitly packages only
-`oak_roboflow`, avoiding flat-layout discovery failures from generated folders like
-`prefix_override`.
-
-## Rosdep Notes
-
-During image build, `rosdep install` skips two keys:
-
-- `ament_python` from `oak_roboflow`
-- `gazebo_ros_pkgs` from `linorobot2_gazebo`
-
-Those packages remain in the source tree but do not block the build.
+- `runtime-data/ros/` → `~/.ros`
+- `runtime-data/control/` → `~/.control`
+- `runtime-data/dome/` → `~/.dome`
+- `runtime-data/config/` → `~/.config`
 
 ## Optional Large Dependencies
 
@@ -157,18 +113,16 @@ Install on demand inside the container:
 
 ```sh
 install-optional-deps.sh           # all optional deps
-install-optional-deps.sh torch     # torch + torchvision (~1GB) — dome_vision ML
-install-optional-deps.sh piper     # piper TTS binary + voice model (~110MB) — dome_voice speech
+install-optional-deps.sh torch     # torch + torchvision (~1 GB) — dome_vision ML
+install-optional-deps.sh piper     # piper TTS + voice model (~110 MB) — dome_voice speech
 ```
 
-Safe to re-run. `torch` takes 10–15 min first install on Pi.
+Safe to re-run. `torch` takes 10-15 min first install on Pi.
 
-## Public Repo Notes
+## Security Notes
 
-This repo intentionally excludes generated inventory and runtime state through `.gitignore`.
-Do not commit private keys, `.env` files, host Wi-Fi credentials, or copied `/etc/netplan`
-files without reviewing them.
+Never commit `manifest/user.txt`, `.env` files, private keys, Wi-Fi credentials,
+or netplan files with passwords. Reviewed local copies go in `host-files/` (gitignored).
 
-Before publishing a repository that previously contained personal paths, private repository
-names, passwords, or other local details, rewrite or recreate Git history. Removing those
-values from the current tree is not enough to remove them from older commits.
+Removing secrets from the current tree does not remove them from git history.
+Before publishing, rewrite or recreate history if it ever contained secrets.

@@ -1,0 +1,2 @@
+# rosdep install skip keys (space-separated).
+skip_keys = ament_python gazebo_ros_pkgs

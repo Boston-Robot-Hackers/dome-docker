@@ -1,0 +1,7 @@
+# Curl-installed tools (not available via apt).
+# method = curl-sh: pipe URL to sh with optional args.
+
+[mcfly]
+method = curl-sh
+url    = https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh
+args   = --git cantino/mcfly

@@ -18,22 +18,36 @@ RUN apt-get update && \
       | xargs apt-get install -y --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Dockerfile RUN steps execute as root, so the host-side "sudo sh" form is not needed here.
-RUN curl -LSfs https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh | sh -s -- --git cantino/mcfly
+RUN source /manifest/lib.sh && \
+    for sect in $(manifest_sections /manifest/tools.txt); do \
+      method=$(manifest_field "$sect" method /manifest/tools.txt); \
+      url=$(manifest_field "$sect" url /manifest/tools.txt); \
+      args=$(manifest_field "$sect" args /manifest/tools.txt); \
+      if [[ "$method" == "curl-sh" ]]; then \
+        curl -LSfs "$url" | sh -s -- $args; \
+      fi; \
+    done
 
-RUN apt-get install -y apt-transport-https gnupg && \
-    curl -sLf --retry 3 --tlsv1.2 --proto "=https" \
-      'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key' \
-      | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] https://packages.doppler.com/public/cli/deb/debian any-version main" \
-      > /etc/apt/sources.list.d/doppler-cli.list && \
-    curl -fsSL --retry 3 --tlsv1.2 --proto "=https" \
-      'https://cli.github.com/packages/githubcli-archive-keyring.gpg' \
-      -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
-    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-      > /etc/apt/sources.list.d/github-cli.list && \
-    apt-get update && apt-get install -y doppler gh && \
+RUN source /manifest/lib.sh && \
+    apt-get install -y apt-transport-https gnupg && \
+    arch=$(dpkg --print-architecture) && \
+    for sect in $(manifest_sections /manifest/apt-repos.txt); do \
+      key_url=$(manifest_field "$sect" key_url /manifest/apt-repos.txt); \
+      key_file=$(manifest_field "$sect" key_file /manifest/apt-repos.txt); \
+      key_dearmor=$(manifest_field "$sect" key_dearmor /manifest/apt-repos.txt); \
+      list=$(manifest_field "$sect" list /manifest/apt-repos.txt); \
+      list="${list//\{arch\}/$arch}"; \
+      list="${list//\{key_file\}/$key_file}"; \
+      if [[ "$key_dearmor" == "yes" ]]; then \
+        curl -sLf --retry 3 --tlsv1.2 --proto "=https" "$key_url" | gpg --dearmor -o "$key_file"; \
+      else \
+        curl -fsSL --retry 3 --tlsv1.2 --proto "=https" "$key_url" -o "$key_file" && chmod go+r "$key_file"; \
+      fi; \
+      echo "$list" > "/etc/apt/sources.list.d/${sect}.list"; \
+    done && \
+    apt-get update && \
+    awk '/^\[/{next} /^packages[[:space:]]*=/{sub(/^packages[[:space:]]*=[[:space:]]*/,""); print}' /manifest/apt-repos.txt \
+      | tr ' ' '\n' | grep -v '^$' | xargs apt-get install -y && \
     rm -rf /var/lib/apt/lists/*
 
 RUN if grep -q '^[^#[:space:]]' /manifest/pip.txt 2>/dev/null; then \

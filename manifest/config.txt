@@ -1,2 +1,4 @@
+# Project defaults. Override DOME_USER in manifest/user.txt (gitignored).
 ROS_DISTRO=kilted
 UBUNTU_CODENAME=noble
+DOME_USER=robot
