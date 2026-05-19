@@ -24,14 +24,18 @@ See **[howto.md](howto.md) → Flash the microSD**.
 
 ## Step 2: Pi — First Boot
 
-See **[howto.md](howto.md) → First boot**.
+See **[howto.md](howto.md) → First boot** for SSH and clone steps.
 
-After cloning and creating `manifest/user.txt`:
+After cloning, create `manifest/user.txt` — this file is gitignored and must be created manually on every machine:
 
-```
-DOCKERHUB_USERNAME=your-dockerhub-username
+```sh
+cat > manifest/user.txt << 'EOF'
 DOME_USER=pitosalas
+DOCKERHUB_USERNAME=your-dockerhub-username
+EOF
 ```
+
+Replace `pitosalas` with your actual Linux username. `DOME_USER` must match the user created by `host-setup.sh` (or the user created by Raspberry Pi Imager during flashing). All build scripts read this file to know which user to set up.
 
 ---
 

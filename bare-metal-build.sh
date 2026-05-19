@@ -15,7 +15,7 @@ source "${MANIFEST_DIR}/lib.sh"
 
 ROS_DISTRO=$(manifest_config ROS_DISTRO "${MANIFEST_DIR}/config.txt")
 _DOME_USER_DEFAULT=$(manifest_config DOME_USER "${MANIFEST_DIR}/config.txt")
-_DOME_USER_FILE=$(grep '^DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 || true)
+_DOME_USER_FILE=$(grep '^[[:space:]]*DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
 # Priority: env var > user.txt > config.txt default
 DOME_USER="${DOME_USER:-${_DOME_USER_FILE:-${_DOME_USER_DEFAULT}}}"
 echo "==> DOME_USER='${DOME_USER}' (from: env=${DOME_USER:-} file=${_DOME_USER_FILE} default=${_DOME_USER_DEFAULT})"
