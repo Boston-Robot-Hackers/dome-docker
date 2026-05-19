@@ -65,9 +65,7 @@ cd ~/dome-docker
 Create `manifest/user.txt` (gitignored — stays local):
 
 ```sh
-cat > manifest/user.txt <<EOF
-DOCKERHUB_USERNAME=your-dockerhub-username
-DOME_USER=pitosalas
-EOF
+printf 'DOME_USER=pitosalas\nDOCKERHUB_USERNAME=your-dockerhub-username\n' > manifest/user.txt
+cat manifest/user.txt
 ```
 

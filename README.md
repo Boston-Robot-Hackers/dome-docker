@@ -77,11 +77,8 @@ See `02-doc/manifest-format.md` for format details on each file.
 Create `manifest/user.txt` (gitignored — never commit this):
 
 ```sh
-cat > manifest/user.txt <<EOF
-DOCKERHUB_USERNAME=your-dockerhub-username
-DOME_USER=yourname
-DOME_PASSWORD=yourpassword
-EOF
+printf 'DOME_USER=yourname\nDOCKERHUB_USERNAME=your-dockerhub-username\nDOME_PASSWORD=yourpassword\n' > manifest/user.txt
+cat manifest/user.txt
 ```
 
 Then source the config before any Docker build or compose command:
