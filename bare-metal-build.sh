@@ -91,8 +91,10 @@ if [[ -z "$skip_keys" ]]; then
     echo "ERROR: skip_keys not set in ${MANIFEST_DIR}/rosdep.txt" >&2
     exit 1
 fi
-cd "${DOME_HOME}/ros2_ws"
-rosdep install --from-paths src --ignore-src -r -y --skip-keys="${skip_keys}"
+sudo -u "${DOME_USER}" bash -c "
+    cd ${DOME_HOME}/ros2_ws
+    rosdep install --from-paths src --ignore-src -r -y --skip-keys='${skip_keys}'
+"
 chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 
 # --- colcon build ---
