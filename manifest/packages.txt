@@ -5,6 +5,7 @@ clang-format
 cmake
 curl
 git
+i2c-tools
 iproute2
 iptables
 iputils-ping
@@ -13,6 +14,7 @@ make
 meson
 nano
 netcat-openbsd
+raspi-config
 ninja-build
 openssh-client
 alsa-utils
@@ -24,6 +26,7 @@ python3-opencv
 python3-osrf-pycommon
 python3-pip
 python3-prompt-toolkit
+python3-smbus
 python3-rosdep
 python3-setproctitle
 python3-venv
