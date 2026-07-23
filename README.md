@@ -127,7 +127,7 @@ package names, URLs, build flags, or directory lists — those all live here.
 | `packages.txt` | apt and ROS packages |
 | `pip.txt` | pip3 packages |
 | `repos.txt` | git repos to clone |
-| `apt-repos.txt` | third-party apt repositories (Doppler, GitHub CLI) |
+| `apt-repos.txt` | third-party apt repositories (Doppler, GitHub CLI, VS Code) |
 | `tools.txt` | curl-installed tools (mcfly) |
 | `colcon.txt` | colcon build flags and skip list |
 | `rosdep.txt` | rosdep install skip keys |

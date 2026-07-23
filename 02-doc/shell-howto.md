@@ -143,7 +143,7 @@ installed. Runs as root. Reads from `manifest/` to install:
 - ROS 2 apt repository and `ros-kilted-ros-base`
 - All apt, ROS, and pip packages from `manifest/packages.txt` and `manifest/pip.txt`
   (**Pi only:** `raspi-config`, `i2c-tools`, `RPi.GPIO`, `spidev` also install — skipped when `DOME_TARGET=vm`)
-- Third-party apt repos (Doppler, GitHub CLI) from `manifest/apt-repos.txt`
+- Third-party apt repos (Doppler, GitHub CLI, VS Code) from `manifest/apt-repos.txt`
 - Curl-installed tools (mcfly) from `manifest/tools.txt`
 - Initialises rosdep
 

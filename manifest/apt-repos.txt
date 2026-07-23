@@ -18,3 +18,10 @@ key_file    = /usr/share/keyrings/githubcli-archive-keyring.gpg
 key_dearmor = no
 list        = deb [arch={arch} signed-by={key_file}] https://cli.github.com/packages stable main
 packages    = gh
+
+[vscode]
+key_url     = https://packages.microsoft.com/keys/microsoft.asc
+key_file    = /usr/share/keyrings/microsoft-archive-keyring.gpg
+key_dearmor = yes
+list        = deb [arch={arch} signed-by={key_file}] https://packages.microsoft.com/repos/code stable main
+packages    = code

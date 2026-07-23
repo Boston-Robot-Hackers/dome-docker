@@ -1,3 +1,4 @@
+export ROS_DISTRO=$(grep '^ROS_DISTRO=' ~/dome-docker/manifest/config.txt | cut -d= -f2)
 source ~/rosutils/ros2_robot_bashrc.bash
 
 export LD_LIBRARY_PATH=/usr/local/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH

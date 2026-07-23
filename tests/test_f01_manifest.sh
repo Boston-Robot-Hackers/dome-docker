@@ -52,6 +52,16 @@ assert_field "${MANIFEST_DIR}/config.txt" "ROS_DISTRO="
 assert_field "${MANIFEST_DIR}/config.txt" "UBUNTU_CODENAME="
 assert_field "${MANIFEST_DIR}/config.txt" "DOME_USER="
 
+echo "--- bashrc exports ROS_DISTRO before sourcing rosutils ---"
+bashrc_body=$(grep -v '^[[:space:]]*#' "${MANIFEST_DIR}/bashrc")
+export_line=$(echo "$bashrc_body" | grep -n "ROS_DISTRO=" | head -1 | cut -d: -f1)
+source_line=$(echo "$bashrc_body" | grep -n "source ~/rosutils/ros2_robot_bashrc.bash" | head -1 | cut -d: -f1)
+if [[ -n "$export_line" && -n "$source_line" && "$export_line" -lt "$source_line" ]]; then
+    pass "bashrc exports ROS_DISTRO before sourcing ros2_robot_bashrc.bash"
+else
+    fail "bashrc must export ROS_DISTRO before sourcing ros2_robot_bashrc.bash (it requires ROS_DISTRO set)"
+fi
+
 echo "--- packages.txt [ros] has no bogus self-referential entry ---"
 ros_pkgs=$(awk '/^\[ros\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt")
 echo "$ros_pkgs" | grep -qx "dome-docker" \
@@ -59,7 +69,7 @@ echo "$ros_pkgs" | grep -qx "dome-docker" \
     || pass "packages.txt [ros] has no bogus 'dome-docker' entry"
 
 echo "--- apt-repos.txt sections and fields ---"
-for sect in doppler github-cli; do
+for sect in doppler github-cli vscode; do
     for field in key_url key_file key_dearmor list packages; do
         source "${MANIFEST_DIR}/lib.sh"
         val=$(manifest_field "$sect" "$field" "${MANIFEST_DIR}/apt-repos.txt")
