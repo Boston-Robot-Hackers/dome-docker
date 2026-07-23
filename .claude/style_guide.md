@@ -1,6 +1,6 @@
 # Code Review Checklist
 
-Version: 3.0
+Version: 3.2
 
 Use this for Python source reviews. `MUST` items are blocking unless explicitly
 waived in the task or PR notes. `SHOULD` items are expected defaults. `CONSIDER`
@@ -21,8 +21,8 @@ items are review prompts, not mechanical rules.
 - [ ] MUST: No task file without a corresponding feature file
 - [ ] MUST: Feature/task status is updated when work is completed or deferred
 - [ ] MUST: When `02-doc/current.md` and `03-features/`, `04-tasks/`, `05-issues/` disagree, resolve or document the mismatch before relying on either
-- [ ] MUST: No ROS2 imports (`rclpy`, `sensor_msgs`, etc.) in `dome_vision/`
-- [ ] MUST: ROS2 code lives under `dome_vision_ros/dome_vision_ros/`
+- [ ] MUST: No ROS2 imports (`rclpy`, `sensor_msgs`, etc.) in `<package>/`
+- [ ] MUST: ROS2 code lives under `<package>_ros/<package>_ros/`
 - [ ] MUST: No secrets, API keys, passwords, or tokens committed in code or config examples
 - [ ] MUST: Sensitive values come from environment variables or local untracked config
 - [ ] MUST: Logs and exceptions do not expose passwords, tokens, PII, or API-key-bearing URLs
@@ -30,6 +30,16 @@ items are review prompts, not mechanical rules.
 - [ ] MUST: No mutable default arguments
 - [ ] MUST: No bare `except Exception:` or silent `except X: pass`
 - [ ] MUST: Validation happens at system boundaries: user input, config, hardware, ROS, or external APIs
+
+### Report Errors, Don't Guess And "Fix" Them
+When code detects something wrong or unexpected, report it (raise/die, or warn) —
+do not infer what was meant and correct it. A guess-and-repair either hides a real
+bug or invents new wrong behavior. If the wrong value came from our own code or
+content, it's a bug to fix at the source.
+- [ ] MUST: Do not compensate for a violated expectation by reinterpreting, coercing, defaulting, or branching to "make it work"
+- [ ] MUST: On a problem, raise with context; never return the bad value unchanged or a silent fallback, and never swallow with `except: return None`/`continue`
+- [ ] MUST: Validate once at the boundary, then trust it
+- [ ] SHOULD: Only genuinely external, untrusted input gets validate-and-reject — and even then, reject, don't silently fix
 - [ ] MUST: Bug fixes include regression tests unless the case is hardware-only or otherwise documented
 - [ ] MUST: JSON map/tracker format changes preserve old saved files or include migration/default handling
 - [ ] MUST: Lifecycle nodes stop worker threads, timers, publishers/subscribers, and OAK resources cleanly on deactivate/cleanup
@@ -40,7 +50,7 @@ items are review prompts, not mechanical rules.
 - [ ] SHOULD: New ROS parameters are declared, read, launch-overridable where useful, and covered by tests
 - [ ] SHOULD: Config defaults are defined in one place whenever practical
 - [ ] SHOULD: Dataclass fields are not hand-transcribed into YAML parsing or ROS parameter declaration when `dataclasses.fields()` can reasonably be used
-- [ ] SHOULD: Launch files use `better_launch` (`@launch_this`, `bl.node`, `bl.group`, `bl.include`)
+- [ ] MUST: Launch files use `better_launch` (`@launch_this`, `bl.node`, `bl.group`, `bl.include`). CLI invocation: `bl <launch_file>.launch.py --param_name value`. Error messages in launch files must use this form, not `ros2 launch` syntax.
 - [ ] SHOULD: ROS2 runtime deps are declared as `exec_depend` in `package.xml`, not in `pyproject.toml`
 - [ ] SHOULD: Tests in `tests/` run with plain `pytest`; no `colcon test` dependency
 - [ ] SHOULD: Optional topics and missing ROS graph dependencies do not crash the node
@@ -100,7 +110,7 @@ items are review prompts, not mechanical rules.
 - [ ] CONSIDER: No god methods, feature envy, data clumps, or unrelated responsibilities in one class
 - [ ] CONSIDER: Mutable state is necessary and class invariants are enforced
 - [ ] CONSIDER: Public API is minimal; internal helpers are clearly separated from public interface
-- [ ] CONSIDER: Repeated 3+ line blocks or repeated object construction patterns may need a helper
+- [ ] MUST: No duplicated logic (DRY) — read every method body and actively look for repeated patterns, not just obvious copy-paste. Check: identical or near-identical method bodies, the same 3+ line sequence in multiple places, repeated object construction patterns. Extract a helper when found
 
 ## Comments And Types
 - [ ] SHOULD: Simple methods with obvious bodies have no docstring
@@ -110,6 +120,13 @@ items are review prompts, not mechanical rules.
 - [ ] SHOULD: Public method parameters have type annotations where the type is non-obvious
 - [ ] SHOULD: Return type is annotated when callers would otherwise have to guess
 - [ ] MUST: Prefer simple annotations where possible; use precise collection types when they prevent caller ambiguity
+
+## Web Assets (CSS / JS / HTML)
+- [ ] MUST: No inline CSS strings inside Python source files; CSS lives in `.css` files loaded at runtime
+- [ ] MUST: No inline JavaScript strings inside Python source files; JS lives in `.js` files loaded at runtime
+- [ ] MUST: No inline HTML template strings inside Python source files; HTML templates live in `.html` files loaded at runtime
+- [ ] MUST: Python loads asset files via `Path(__file__).parent / "filename"` and passes the content to the framework
+- [ ] SHOULD: One CSS file per module that needs custom styles; shared styles go in a shared asset file
 
 ## Runtime Quality
 - [ ] MUST: No unreachable code, commented-out code blocks, debug print statements, or breakpoints

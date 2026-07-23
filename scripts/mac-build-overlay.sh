@@ -3,10 +3,11 @@
 # Reads ROS_DISTRO from manifest/config.txt; clones repos via SSH forwarding.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source ./dome-config.sh
+source "${SCRIPT_DIR}/dome-config.sh"
 
-_MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
+_MANIFEST_DIR="${SCRIPT_DIR}/../manifest"
 ROS_DISTRO=$(grep '^ROS_DISTRO=' "${_MANIFEST_DIR}/config.txt" | cut -d= -f2)
 
 DOME_BASE_IMAGE="${DOME_BASE_IMAGE:-dome-docker-base:${ROS_DISTRO}}"

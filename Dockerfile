@@ -74,8 +74,8 @@ RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
 COPY manifest/bashrc ${DOME_HOME}/.bashrc
 RUN if [[ -f "${DOME_HOME}/rosutils/bru.py" ]]; then ln -s "${DOME_HOME}/rosutils/bru.py" "${DOME_HOME}/.local/bin/bru" && chmod +x "${DOME_HOME}/rosutils/bru.py"; fi
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY install-optional-deps.sh /usr/local/bin/install-optional-deps.sh
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY scripts/install-optional-deps.sh /usr/local/bin/install-optional-deps.sh
 USER root
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/install-optional-deps.sh
 USER ${DOME_USER}

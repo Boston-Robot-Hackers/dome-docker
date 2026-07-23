@@ -4,12 +4,12 @@
 set -euo pipefail
 
 if [[ "${EUID}" -ne 0 ]]; then
-    echo "ERROR: run as root: sudo ./bare-metal-build.sh" >&2
+    echo "ERROR: run as root: sudo scripts/bare-metal-build.sh" >&2
     exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MANIFEST_DIR="${SCRIPT_DIR}/manifest"
+MANIFEST_DIR="${SCRIPT_DIR}/../manifest"
 
 source "${MANIFEST_DIR}/lib.sh"
 

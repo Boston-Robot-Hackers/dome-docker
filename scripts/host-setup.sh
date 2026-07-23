@@ -4,7 +4,7 @@
 set -euo pipefail
 
 if [[ "${EUID}" -ne 0 ]]; then
-  echo "Run as root: sudo ./host-setup.sh" >&2
+  echo "Run as root: sudo scripts/host-setup.sh" >&2
   exit 1
 fi
 

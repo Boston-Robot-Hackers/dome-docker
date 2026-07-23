@@ -29,7 +29,7 @@ manifest/
     |
     +---> Dockerfile.base + Dockerfile      (docker compose build on Mac)
     |
-    +---> bare-metal-base.sh + bare-metal-build.sh  (run as root on Pi)
+    +---> scripts/bare-metal-base.sh + scripts/bare-metal-build.sh  (run as root on target)
 ```
 
 **User overrides:** `manifest/user.txt` (gitignored) overrides `DOME_USER` and sets

@@ -68,8 +68,8 @@ docker login
 **Build base image** (once, then only when `manifest/packages.txt` or `Dockerfile.base` changes):
 
 ```sh
-source ./dome-config.sh
-./mac-build-base.sh
+source scripts/dome-config.sh
+scripts/mac-build-base.sh
 ```
 
 Builds `linux/arm64` ROS base image and pushes to `docker.io/<DOCKERHUB_USERNAME>/dome-base:<ROS_DISTRO>`.
@@ -77,9 +77,9 @@ Builds `linux/arm64` ROS base image and pushes to `docker.io/<DOCKERHUB_USERNAME
 **Build overlay image** (for every code or repo change):
 
 ```sh
-source ./dome-config.sh   # must be sourced first
+source scripts/dome-config.sh   # must be sourced first
 ssh-add -l                # must show a key — private repos cloned via SSH
-./mac-build-overlay.sh
+scripts/mac-build-overlay.sh
 ```
 
 Clones robot repos, runs `colcon build`, pushes to `docker.io/<DOCKERHUB_USERNAME>/dome-docker:dome-<ROS_DISTRO>`.
@@ -100,7 +100,7 @@ After cloning and creating `manifest/user.txt`, run host setup — installs Dock
 
 ```sh
 export DOME_PASSWORD=yourpassword
-sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
 Reboot when complete:
@@ -129,12 +129,12 @@ docker login
 Source config, pull, and run:
 
 ```sh
-source ./dome-config.sh
-docker compose pull dome
-docker compose run --rm dome
+source scripts/dome-config.sh
+docker compose -f compose/compose.yaml --project-directory . pull dome
+docker compose -f compose/compose.yaml --project-directory . run --rm dome
 ```
 
-> `source ./dome-config.sh` is required — sets `DOME_IMAGE`, `DOME_USER`, `DOME_PASSWORD`. Without it, Compose falls back to placeholder values and pull fails.
+> `source scripts/dome-config.sh` is required — sets `DOME_IMAGE`, `DOME_USER`, `DOME_PASSWORD`. Without it, Compose falls back to placeholder values and pull fails.
 
 ---
 
@@ -190,21 +190,21 @@ sudo systemctl disable dome   # to turn off
 **On Mac** — after any change:
 
 ```sh
-source ./dome-config.sh
+source scripts/dome-config.sh
 
 # packages.txt or Dockerfile.base changed (slow):
-./mac-build-base.sh && ./mac-build-overlay.sh
+scripts/mac-build-base.sh && scripts/mac-build-overlay.sh
 
 # code, repos, or Dockerfile changed (fast — cached base):
-./mac-build-overlay.sh
+scripts/mac-build-overlay.sh
 ```
 
 **On Pi:**
 
 ```sh
-source ./dome-config.sh
-docker compose pull dome
-docker compose run --rm dome
+source scripts/dome-config.sh
+docker compose -f compose/compose.yaml --project-directory . pull dome
+docker compose -f compose/compose.yaml --project-directory . run --rm dome
 ```
 
 ---
@@ -218,14 +218,14 @@ open -a Docker
 
 **`host-setup.sh` fails "Could not resolve host: github.com"** — transient DNS, rerun:
 ```sh
-sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
 **DNS returns only IPv6 for `download.docker.com`:**
 ```sh
 sudo resolvectl dns wlan0 1.1.1.1 8.8.8.8
 sudo resolvectl flush-caches
-sudo --preserve-env=DOME_USER,DOME_PASSWORD ./host-setup.sh
+sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
 **`Permission denied (publickey)` or `ERROR: failed to clone` during Mac build:**
@@ -234,13 +234,13 @@ ssh-add -l
 ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 # If still failing, switch to default builder:
 docker context use default && docker buildx use default
-./mac-build-overlay.sh
+scripts/mac-build-overlay.sh
 ```
 
 **`docker compose pull` fails "pull access denied"** — always source config first:
 ```sh
-source ./dome-config.sh
-docker compose pull dome
+source scripts/dome-config.sh
+docker compose -f compose/compose.yaml --project-directory . pull dome
 ```
 
 **Push fails with network error or timeout** — usually transient:
@@ -251,14 +251,14 @@ docker compose pull dome
 
 Manual push if still failing:
 ```sh
-source ./dome-config.sh
+source scripts/dome-config.sh
 docker buildx build --platform linux/arm64 --push -t "${DOME_BASE_IMAGE}" -f Dockerfile.base .
 docker buildx build --platform linux/arm64 --push -t "${DOME_IMAGE}" .
 ```
 
 **Overlay build all CACHED but changes not included** — rebuild base first:
 ```sh
-source ./dome-config.sh
-./mac-build-base.sh
-./mac-build-overlay.sh
+source scripts/dome-config.sh
+scripts/mac-build-base.sh
+scripts/mac-build-overlay.sh
 ```

@@ -3,9 +3,9 @@
 # Source this file before running host setup or Docker builds:
 #
 #   nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
-#   source ./dome-config.sh
+#   source scripts/dome-config.sh
 
-_MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifest"
+_MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../manifest"
 
 _require_field() {
     local file="$1" key="$2"

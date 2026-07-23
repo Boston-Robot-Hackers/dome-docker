@@ -18,18 +18,19 @@ See `02-doc/howto.md` — overview and path comparison.
 
 ## Repository Layout
 
-### Scripts
+### scripts/
 
 | Script | Purpose |
 |---|---|
-| `bare-metal-base.sh` | Install ROS + all packages on Pi from manifest. Run as root. |
-| `bare-metal-build.sh` | Clone repos, rosdep, colcon build on Pi from manifest. Run as root. |
-| `host-setup.sh` | Provision Pi host: Docker, user, udev, boot firmware, dome.service. |
-| `dome-config.sh` | Source to set `DOME_USER`, `DOME_IMAGE`, etc. from manifest. |
-| `mac-build-base.sh` | Build and push base Docker image (Mac, cross-compile). |
-| `mac-build-overlay.sh` | Build and push overlay Docker image (Mac, cross-compile). |
-| `collect-inventory.sh` | Snapshot installed packages on live Pi to `inventory/`. |
-| `install-optional-deps.sh` | Install large optional deps (torch, piper) inside container. |
+| `scripts/bare-metal-base.sh` | Install ROS + all packages on Pi from manifest. Run as root. |
+| `scripts/bare-metal-build.sh` | Clone repos, rosdep, colcon build on Pi from manifest. Run as root. |
+| `scripts/host-setup.sh` | Provision Pi host: Docker, user, udev, boot firmware, dome.service. |
+| `scripts/dome-config.sh` | Source to set `DOME_USER`, `DOME_IMAGE`, etc. from manifest. |
+| `scripts/mac-build-base.sh` | Build and push base Docker image (Mac, cross-compile). |
+| `scripts/mac-build-overlay.sh` | Build and push overlay Docker image (Mac, cross-compile). |
+| `scripts/collect-inventory.sh` | Snapshot installed packages on live Pi to `inventory/`. |
+| `scripts/install-optional-deps.sh` | Install large optional deps (torch, piper) inside container. |
+| `scripts/docker-entrypoint.sh` | Sources ROS and workspace overlays before exec. |
 
 ### Dockerfiles
 
@@ -37,8 +38,7 @@ See `02-doc/howto.md` — overview and path comparison.
 |---|---|
 | `Dockerfile.base` | Reusable ROS base image — apt/pip/curl packages from manifest. |
 | `Dockerfile` | Overlay image — repo clones, colcon build, user setup. |
-| `compose.yaml` | Runs container with host networking and device access. |
-| `docker-entrypoint.sh` | Sources ROS and workspace overlays before exec. |
+| `compose/compose.yaml` | Runs container with host networking and device access. |
 
 ### manifest/
 
@@ -84,7 +84,7 @@ cat manifest/user.txt
 Then source the config before any Docker build or compose command:
 
 ```sh
-source ./dome-config.sh
+source scripts/dome-config.sh
 ```
 
 ## Running Tests

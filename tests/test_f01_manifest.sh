@@ -102,12 +102,12 @@ assert_no_hardcode "${REPO_DIR}/Dockerfile" "ament_python gazebo_ros_pkgs" "rosd
 assert_no_hardcode "${REPO_DIR}/Dockerfile" '\.local/bin"' "hardcoded dirs"
 
 echo "--- Bare-metal scripts syntax check ---"
-bash -n "${REPO_DIR}/bare-metal-base.sh" && pass "bare-metal-base.sh syntax" || fail "bare-metal-base.sh syntax"
-bash -n "${REPO_DIR}/bare-metal-build.sh" && pass "bare-metal-build.sh syntax" || fail "bare-metal-build.sh syntax"
+bash -n "${REPO_DIR}/scripts/bare-metal-base.sh" && pass "bare-metal-base.sh syntax" || fail "bare-metal-base.sh syntax"
+bash -n "${REPO_DIR}/scripts/bare-metal-build.sh" && pass "bare-metal-build.sh syntax" || fail "bare-metal-build.sh syntax"
 
 if command -v shellcheck >/dev/null 2>&1; then
-    shellcheck "${REPO_DIR}/bare-metal-base.sh" && pass "bare-metal-base.sh shellcheck" || fail "bare-metal-base.sh shellcheck"
-    shellcheck "${REPO_DIR}/bare-metal-build.sh" && pass "bare-metal-build.sh shellcheck" || fail "bare-metal-build.sh shellcheck"
+    shellcheck "${REPO_DIR}/scripts/bare-metal-base.sh" && pass "bare-metal-base.sh shellcheck" || fail "bare-metal-base.sh shellcheck"
+    shellcheck "${REPO_DIR}/scripts/bare-metal-build.sh" && pass "bare-metal-build.sh shellcheck" || fail "bare-metal-build.sh shellcheck"
 else
     echo "  SKIP: shellcheck not installed"
 fi

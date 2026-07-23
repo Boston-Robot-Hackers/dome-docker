@@ -1,10 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/pitosalas/mydev/dome_vision/dome_vision/**)",
-      "Bash(git *)",
-      "Bash(chmod +x /Users/pitosalas/mydev/dome-docker/bare-metal-base.sh)",
-      "Bash(bash -n /Users/pitosalas/mydev/dome-docker/bare-metal-base.sh)"
+      "WebSearch",
+      "Bash(chmod +x tests/test_f02_file_layout.sh)",
+      "Bash(bash tests/test_f02_file_layout.sh)",
+      "Bash(git mv *)",
+      "Bash(bash tests/test_f01_manifest.sh)",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }
