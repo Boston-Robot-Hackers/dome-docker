@@ -82,6 +82,14 @@ cat manifest/user.txt
 
 Replace `pitosalas` with your actual Linux username. `DOME_USER` must match the user created by `host-setup.sh` (or the user created by Raspberry Pi Imager during flashing). All build scripts read this file to know which user to set up.
 
+**Primary** — set these once so every later `ssh`/`scp` command below can just
+reuse them instead of retyping the username and address each time:
+
+```sh
+export TARGET_USER=pitosalas   # match DOME_USER above
+export TARGET_HOST=dome.local  # Pi: dome.local; VM: the VM's IP
+```
+
 **VM only** — also add `DOME_TARGET=vm`, or every script below installs
 Pi-hardware-only packages/repos and the ReSpeaker overlay build fails (no
 `/boot/firmware` on a VM). **Pi needs no action here** — `DOME_TARGET` defaults
@@ -102,8 +110,9 @@ export DOME_PASSWORD=yourpassword
 sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
-`host-setup.sh` prints the target's IP addresses just before finishing — note
-one down, then reboot when complete:
+`host-setup.sh` prints the target's IP addresses just before finishing. If
+`TARGET_HOST` (set in Step 2) doesn't match one of them, update it now — then
+reboot when complete:
 
 ```sh
 sudo reboot
@@ -112,7 +121,7 @@ sudo reboot
 **Pi:** SSH back in from Primary:
 
 ```sh
-ssh pitosalas@dome.local   # mDNS usually works
+ssh "${TARGET_USER}@${TARGET_HOST}"   # mDNS usually works for dome.local
 cd ~/dome-docker
 ```
 
@@ -121,7 +130,7 @@ just wait for the reboot and continue there. Only reconnect over SSH if
 you're accessing the VM remotely from Primary:
 
 ```sh
-ssh pitosalas@<ip-from-host-setup.sh-output>
+ssh "${TARGET_USER}@${TARGET_HOST}"
 cd ~/dome-docker
 ```
 
@@ -161,9 +170,8 @@ Requires GitHub SSH key present for private repos.
 **Primary** — copy your key from Mac to target:
 
 ```sh
-scp ~/.ssh/id_ed25519 pitosalas@dome.local:~/.ssh/id_ed25519       # Pi
-scp ~/.ssh/id_ed25519.pub pitosalas@dome.local:~/.ssh/id_ed25519.pub
-# use the VM's IP instead of dome.local if mDNS doesn't resolve (common on VMs)
+scp ~/.ssh/id_ed25519 "${TARGET_USER}@${TARGET_HOST}:~/.ssh/id_ed25519"
+scp ~/.ssh/id_ed25519.pub "${TARGET_USER}@${TARGET_HOST}:~/.ssh/id_ed25519.pub"
 ```
 
 **Target** — set permissions and verify GitHub access:
@@ -192,19 +200,17 @@ colcon build is slow on ARM; time varies a lot by target CPU.
 
 ## Step 6: Target — Smoke Test
 
-Identical for both scenarios:
+`bare-metal-build.sh` installed `.bashrc` so ROS and the workspace overlay are
+sourced automatically in every new shell — **open a new terminal / SSH
+session** (don't reuse the one `bare-metal-build.sh` ran in) and run:
 
 ```sh
-source /opt/ros/kilted/setup.bash
-source ~/ros2_ws/install/setup.bash
 echo "$ROS_DISTRO"
 ros2 --help
 ls ~/ros2_ws/src
 ```
 
 Expected: `kilted`, ros2 usage, list of cloned repos.
-
-`.bashrc` is already configured by `bare-metal-build.sh` to source both overlays on login.
 
 ---
 
@@ -219,6 +225,8 @@ cd ~/dome-docker
 git pull
 sudo scripts/bare-metal-build.sh   # re-clones changed repos, rebuilds workspace
 ```
+
+Open a new terminal / SSH session afterward to pick up the rebuilt workspace overlay.
 
 **Add a package** — edit `manifest/packages.txt` or `manifest/pip.txt`, then:
 
