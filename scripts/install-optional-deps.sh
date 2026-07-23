@@ -6,7 +6,7 @@ set -euo pipefail
 DOME_HOME="${DOME_HOME:-$HOME}"
 
 # --- ML: torch + torchvision (required by dome_vision) ---
-# ~1GB download, 10-15 min on Pi first run
+# ~1GB download
 install_torch() {
   echo "Installing torch and torchvision (CPU-only, arm64)..."
   pip3 install --break-system-packages torch torchvision --index-url https://download.pytorch.org/whl/cpu

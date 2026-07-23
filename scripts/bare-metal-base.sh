@@ -49,7 +49,7 @@ echo "==> [2/8] ROS 2 repo done"
 
 # --- ROS base install ---
 echo ""
-echo "==> [3/8] Installing ros-${ROS_DISTRO}-ros-base (slow — 5-15 min)"
+echo "==> [3/8] Installing ros-${ROS_DISTRO}-ros-base (slow)"
 apt-get install -y "ros-${ROS_DISTRO}-ros-base"
 echo "==> [3/8] ROS base done"
 

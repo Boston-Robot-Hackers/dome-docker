@@ -64,10 +64,10 @@ cat /etc/os-release   # VERSION_CODENAME must be "noble"
 
 **Pi:** see **[howto.md](howto.md) → First boot** for SSH and clone steps.
 
-**VM:** boot the VM, note its IP, then:
+**VM:** boot the VM, then run the following either in the VM's console window
+directly, or over SSH from Primary (`ssh pitosalas@<vm-ip>` — note the IP first):
 
 ```sh
-ssh pitosalas@<vm-ip>
 sudo apt update && sudo apt install -y git ca-certificates
 git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
 cd ~/dome-docker
@@ -109,11 +109,19 @@ one down, then reboot when complete:
 sudo reboot
 ```
 
-**Primary** — SSH back in:
+**Pi:** SSH back in from Primary:
 
 ```sh
-ssh pitosalas@dome.local   # Pi: mDNS usually works
-# ssh pitosalas@<ip-from-host-setup.sh-output>   # VM: mDNS often doesn't resolve
+ssh pitosalas@dome.local   # mDNS usually works
+cd ~/dome-docker
+```
+
+**VM:** if you're working directly in the VM's console window, no SSH needed —
+just wait for the reboot and continue there. Only reconnect over SSH if
+you're accessing the VM remotely from Primary:
+
+```sh
+ssh pitosalas@<ip-from-host-setup.sh-output>
 cd ~/dome-docker
 ```
 
@@ -134,7 +142,7 @@ installed. Runs as root. Reads from `manifest/` to install:
 sudo scripts/bare-metal-base.sh
 ```
 
-Takes 10-30 min depending on target and network speed.
+Time varies by target hardware and network speed.
 
 ---
 
@@ -178,7 +186,7 @@ ssh-add ~/.ssh/id_ed25519
 sudo scripts/bare-metal-build.sh
 ```
 
-Takes 20-60 min on Pi (colcon build is slow on ARM); faster on a VM with more CPU.
+colcon build is slow on ARM; time varies a lot by target CPU.
 
 ---
 

@@ -52,6 +52,12 @@ assert_field "${MANIFEST_DIR}/config.txt" "ROS_DISTRO="
 assert_field "${MANIFEST_DIR}/config.txt" "UBUNTU_CODENAME="
 assert_field "${MANIFEST_DIR}/config.txt" "DOME_USER="
 
+echo "--- packages.txt [ros] has no bogus self-referential entry ---"
+ros_pkgs=$(awk '/^\[ros\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt")
+echo "$ros_pkgs" | grep -qx "dome-docker" \
+    && fail "packages.txt [ros] still lists bogus 'dome-docker' (not a real ROS package — apt install fails: ros-<distro>-dome-docker not found)" \
+    || pass "packages.txt [ros] has no bogus 'dome-docker' entry"
+
 echo "--- apt-repos.txt sections and fields ---"
 for sect in doppler github-cli; do
     for field in key_url key_file key_dearmor list packages; do

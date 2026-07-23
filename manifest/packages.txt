@@ -79,5 +79,4 @@ tf-transformations
 tf2
 tf2-ros
 xacro
-dome-docker
 

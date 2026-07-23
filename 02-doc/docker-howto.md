@@ -164,7 +164,7 @@ install-optional-deps.sh torch     # torch + torchvision (~1 GB, dome_vision ML)
 install-optional-deps.sh piper     # piper TTS + voice model (~110 MB, dome_voice)
 ```
 
-Safe to re-run. `torch` takes 10-15 min on Pi first run.
+Safe to re-run. `torch` first install takes noticeably longer than a re-run.
 
 After installing piper:
 
