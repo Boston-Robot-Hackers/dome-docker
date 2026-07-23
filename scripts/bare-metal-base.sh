@@ -15,9 +15,12 @@ source "${MANIFEST_DIR}/lib.sh"
 
 ROS_DISTRO=$(manifest_config ROS_DISTRO "${MANIFEST_DIR}/config.txt")
 UBUNTU_CODENAME=$(manifest_config UBUNTU_CODENAME "${MANIFEST_DIR}/config.txt")
+_DOME_TARGET_DEFAULT=$(manifest_config DOME_TARGET "${MANIFEST_DIR}/config.txt")
+_DOME_TARGET_FILE=$(grep '^[[:space:]]*DOME_TARGET=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+DOME_TARGET="${DOME_TARGET:-${_DOME_TARGET_FILE:-${_DOME_TARGET_DEFAULT}}}"
 
 echo "==> Starting bare-metal-base.sh"
-echo "==> ROS_DISTRO=${ROS_DISTRO}  UBUNTU_CODENAME=${UBUNTU_CODENAME}"
+echo "==> ROS_DISTRO=${ROS_DISTRO}  UBUNTU_CODENAME=${UBUNTU_CODENAME}  DOME_TARGET=${DOME_TARGET}"
 echo ""
 
 # --- Locale ---
@@ -54,6 +57,10 @@ echo "==> [3/8] ROS base done"
 echo ""
 echo "==> [4/8] Installing apt packages from manifest/packages.txt"
 APT_PKGS=$(awk '/^\[apt\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt")
+if [[ "${DOME_TARGET}" == "pi" ]]; then
+    APT_PKGS="${APT_PKGS}
+$(awk '/^\[apt-pi\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/packages.txt")"
+fi
 echo "  packages: $(echo "$APT_PKGS" | wc -l) items"
 echo "$APT_PKGS" | xargs apt-get install -y --no-install-recommends
 echo "==> [4/8] apt packages done"
@@ -117,9 +124,13 @@ echo "==> [7/8] third-party repos done"
 # --- pip packages from manifest/pip.txt ---
 echo ""
 echo "==> [8/8] Installing pip packages from manifest/pip.txt"
-if grep -q '^[^#[:space:]]' "${MANIFEST_DIR}/pip.txt" 2>/dev/null; then
-    PIP_PKGS=$(awk '/^[^#[:space:]]/ && NF' "${MANIFEST_DIR}/pip.txt")
-    echo "  packages: $(echo "$PIP_PKGS" | wc -l) items"
+PIP_PKGS=$(awk '/^\[pip\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/pip.txt")
+if [[ "${DOME_TARGET}" == "pi" ]]; then
+    PIP_PKGS="${PIP_PKGS}
+$(awk '/^\[pip-pi\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' "${MANIFEST_DIR}/pip.txt")"
+fi
+if [[ -n "$(echo "$PIP_PKGS" | tr -d '[:space:]')" ]]; then
+    echo "  packages: $(echo "$PIP_PKGS" | grep -c '^[^[:space:]]')"
     echo "$PIP_PKGS" | xargs pip3 install --break-system-packages --ignore-installed
 fi
 echo "==> [8/8] pip packages done"

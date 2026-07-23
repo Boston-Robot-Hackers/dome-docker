@@ -1,10 +1,12 @@
 [root]
-https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git seeed-linux-dtoverlays
-https://github.com/raspberrypi/libcamera-apps.git libcamera-apps
 git@github.com:campusrover/rosutils.git rosutils
-https://github.com/respeaker/mic_hat.git mic_hat
 https://github.com/luxonis/depthai-python.git depthai-python
 https://github.com/pitosalas/linorobot2_hardware.git linorobot2_hardware
+
+[root-pi]
+https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git seeed-linux-dtoverlays
+https://github.com/raspberrypi/libcamera-apps.git libcamera-apps
+https://github.com/respeaker/mic_hat.git mic_hat
 
 [ros_ws]
 https://github.com/dfki-ric/better_launch.git better_launch devel

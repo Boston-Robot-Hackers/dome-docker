@@ -6,10 +6,12 @@
 #   LIKELY REQUIRED    - used by installed ROS pkgs or hardware drivers
 #   NOT REQUIRED       - covered by apt or no robot use case found
 #   RECOMMEND NOT DO   - too large, dev-only, or conflicts with apt packages
+#
+# Sections: [pip] installed on all targets, [pip-pi] installed only when
+# DOME_TARGET=pi.
 
-# CLEARLY REQUIRED — Pi hardware interfaces
-RPi.GPIO
-spidev
+[pip]
+# CLEARLY REQUIRED — audio
 PyAudio
 
 # CLEARLY REQUIRED — camera pipeline (OAK/depthai hardware in use)
@@ -78,3 +80,8 @@ psutil~=6.0.0
 # RECOMMEND NOT DO — 500MB+ each; bloats base image; add in overlay if ML needed
 # torch
 # torchvision
+
+[pip-pi]
+# CLEARLY REQUIRED — Pi hardware interfaces
+RPi.GPIO
+spidev

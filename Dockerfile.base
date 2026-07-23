@@ -12,7 +12,8 @@ ENV ROS_DISTRO=${ROS_DISTRO}
 COPY manifest/ /manifest/
 
 RUN apt-get update && \
-    awk '/^\[apt\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' /manifest/packages.txt \
+    (awk '/^\[apt\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' /manifest/packages.txt; \
+     awk '/^\[apt-pi\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' /manifest/packages.txt) \
       | xargs apt-get install -y --no-install-recommends && \
     awk -v d="${ROS_DISTRO}" '/^\[ros\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/{print "ros-"d"-"$0}' /manifest/packages.txt \
       | xargs apt-get install -y --no-install-recommends && \
@@ -50,8 +51,8 @@ RUN source /manifest/lib.sh && \
       | tr ' ' '\n' | grep -v '^$' | xargs apt-get install -y && \
     rm -rf /var/lib/apt/lists/*
 
-RUN if grep -q '^[^#[:space:]]' /manifest/pip.txt 2>/dev/null; then \
-      awk '/^[^#[:space:]]/ && NF' /manifest/pip.txt | xargs pip3 install --break-system-packages --ignore-installed; \
-    fi
+RUN (awk '/^\[pip\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' /manifest/pip.txt; \
+     awk '/^\[pip-pi\]/{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/' /manifest/pip.txt) \
+      | xargs pip3 install --break-system-packages --ignore-installed
 
 RUN rosdep init || true

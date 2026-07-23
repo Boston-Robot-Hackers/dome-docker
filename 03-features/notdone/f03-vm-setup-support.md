@@ -3,12 +3,18 @@
 
 **Priority**: Medium
 **Done:** no
-**Tasks File Created:** no
-**Tests Written:** no
-**Test Passing:** no
+**Tasks File Created:** yes
+**Tests Written:** yes
+**Test Passing:** yes
 **Description**: `bare-metal-base.sh` and `bare-metal-build.sh` currently assume a fresh Raspberry Pi (Ubuntu 24.04 on Pi hardware) and install Pi-only pieces unconditionally: `raspi-config` and `i2c-tools` (apt), `RPi.GPIO` (pip), and Pi-hardware repos like `libcamera-apps` and `seeed-linux-dtoverlays` (`manifest/repos.txt` `[root]` section). Some of these (`raspi-config` in particular) are not installable on a plain Ubuntu VM and will fail the script outright. Add a target concept (e.g. `DOME_TARGET=pi|vm` in `manifest/config.txt`, override via `manifest/user.txt` like `DOME_USER`) so the same scripts can provision a VMware/Parallels/cloud Ubuntu 24.04 VM for development, skipping hardware-only steps that don't apply off-Pi. Robot-software packages (ROS, depthai, etc.) install the same either way — only the Pi-hardware-specific subset is conditional.
 
 **Observed failure on non-Pi VM**: `install: invalid target '/boot/firmware/overlays/respeaker-2mic-v2_0.dtbo': No such file or directory`. Comes from the `mic_hat` (respeaker) device-tree overlay `make install` step (`manifest/repos.txt` `[root]`), which writes to `/boot/firmware/overlays/` — a path that only exists on Raspberry Pi OS boot partitions, not on a generic Ubuntu VM. `seeed-linux-dtoverlays` has the same class of failure (dtbo overlay install to `/boot/firmware/overlays/`). Both need their overlay-install step skipped, not just the `git clone`, when `DOME_TARGET=vm`.
+
+**Scope correction (found during task planning/implementation):** the observed
+`/boot/firmware/overlays/` failure actually comes from `scripts/host-setup.sh`'s
+own hardcoded `seeed-linux-dtoverlays` clone + `make install` (not from
+`manifest/repos.txt` `[root]` cloning as stated below). `host-setup.sh` is
+in scope alongside `bare-metal-base.sh`/`bare-metal-build.sh` — see TF03 T07.
 
 ## Scope
 

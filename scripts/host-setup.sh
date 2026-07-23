@@ -12,6 +12,10 @@ USERNAME="${DOME_USER:-${USER:-robot}}"
 PASSWORD="${DOME_PASSWORD-}"
 DOCKER_APT_HOST="download.docker.com"
 
+_DOME_TARGET_DEFAULT=$(grep '^DOME_TARGET=' manifest/config.txt | cut -d= -f2)
+_DOME_TARGET_FILE=$(grep '^[[:space:]]*DOME_TARGET=' manifest/user.txt 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+DOME_TARGET="${DOME_TARGET:-${_DOME_TARGET_FILE:-${_DOME_TARGET_DEFAULT:-pi}}}"
+
 default_network_interface() {
   ip route get 1.1.1.1 | awk '{for (i = 1; i <= NF; i++) if ($i == "dev") {print $(i + 1); exit}}'
 }
@@ -116,21 +120,25 @@ else
   echo "Skipping /boot/firmware restore. Set RESTORE_BOOT_FIRMWARE=1 to copy reviewed boot files."
 fi
 
-apt-get install -y flex bison libssl-dev bc libncurses5-dev libncursesw5-dev
+if [[ "${DOME_TARGET}" == "pi" ]]; then
+  apt-get install -y flex bison libssl-dev bc libncurses5-dev libncursesw5-dev
 
-OVERLAY_DTBO=/boot/firmware/overlays/respeaker-2mic-v2_0.dtbo
-if [[ ! -f "${OVERLAY_DTBO}" ]]; then
-  SEEED_DIR="$(mktemp -d)"
-  git clone https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git "${SEEED_DIR}"
-  make -C "${SEEED_DIR}" overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo
-  install -m 0644 "${SEEED_DIR}/overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo" "${OVERLAY_DTBO}"
-  rm -rf "${SEEED_DIR}"
-  if ! grep -q 'dtoverlay=respeaker-2mic-v2_0' /boot/firmware/config.txt; then
-    echo "dtoverlay=respeaker-2mic-v2_0" >> /boot/firmware/config.txt
+  OVERLAY_DTBO=/boot/firmware/overlays/respeaker-2mic-v2_0.dtbo
+  if [[ ! -f "${OVERLAY_DTBO}" ]]; then
+    SEEED_DIR="$(mktemp -d)"
+    git clone https://github.com/Seeed-Studio/seeed-linux-dtoverlays.git "${SEEED_DIR}"
+    make -C "${SEEED_DIR}" overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo
+    install -m 0644 "${SEEED_DIR}/overlays/rpi/respeaker-2mic-v2_0-overlay.dtbo" "${OVERLAY_DTBO}"
+    rm -rf "${SEEED_DIR}"
+    if ! grep -q 'dtoverlay=respeaker-2mic-v2_0' /boot/firmware/config.txt; then
+      echo "dtoverlay=respeaker-2mic-v2_0" >> /boot/firmware/config.txt
+    fi
+    echo "ReSpeaker overlay installed. Reboot required."
+  else
+    echo "ReSpeaker overlay already present; skipping."
   fi
-  echo "ReSpeaker overlay installed. Reboot required."
 else
-  echo "ReSpeaker overlay already present; skipping."
+  echo "DOME_TARGET=vm — skipping ReSpeaker overlay build (Pi-only, needs /boot/firmware)."
 fi
 
 DOME_DIR="/home/${USERNAME}/dome-docker"

@@ -20,6 +20,10 @@ _DOME_USER_FILE=$(grep '^[[:space:]]*DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/d
 DOME_USER="${DOME_USER:-${_DOME_USER_FILE:-${_DOME_USER_DEFAULT}}}"
 echo "==> DOME_USER='${DOME_USER}' (from: env=${DOME_USER:-} file=${_DOME_USER_FILE} default=${_DOME_USER_DEFAULT})"
 
+_DOME_TARGET_DEFAULT=$(manifest_config DOME_TARGET "${MANIFEST_DIR}/config.txt")
+_DOME_TARGET_FILE=$(grep '^[[:space:]]*DOME_TARGET=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+DOME_TARGET="${DOME_TARGET:-${_DOME_TARGET_FILE:-${_DOME_TARGET_DEFAULT}}}"
+
 DOME_HOME="/home/${DOME_USER}"
 
 if ! id "${DOME_USER}" >/dev/null 2>&1; then
@@ -64,6 +68,9 @@ clone_section() {
     done < <(awk -v s="${section}" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' "${MANIFEST_DIR}/repos.txt")
 }
 clone_section root "${DOME_HOME}"
+if [[ "${DOME_TARGET}" == "pi" ]]; then
+    clone_section root-pi "${DOME_HOME}"
+fi
 clone_section ros_ws "${DOME_HOME}/ros2_ws/src"
 clone_section uros_ws "${DOME_HOME}/uros_ws/src"
 chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"

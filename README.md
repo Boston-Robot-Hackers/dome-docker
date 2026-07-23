@@ -87,6 +87,28 @@ Then source the config before any Docker build or compose command:
 source scripts/dome-config.sh
 ```
 
+## Setting Up A Development VM
+
+`scripts/host-setup.sh`, `scripts/bare-metal-base.sh`, and
+`scripts/bare-metal-build.sh` also support provisioning a generic Ubuntu 24.04
+(noble) VM (VMware, Parallels, cloud) instead of a Raspberry Pi, for
+development without hardware. Set `DOME_TARGET=vm` in `manifest/user.txt`:
+
+```sh
+printf 'DOME_TARGET=vm\n' >> manifest/user.txt
+```
+
+With `DOME_TARGET=vm`, all three scripts skip Pi-hardware-only work: the
+ReSpeaker overlay build (`host-setup.sh`), `raspi-config`/`i2c-tools`
+(`bare-metal-base.sh` apt), `RPi.GPIO`/`spidev` (`bare-metal-base.sh` pip),
+and the `libcamera-apps`/`seeed-linux-dtoverlays`/`mic_hat` repo clones
+(`bare-metal-build.sh`). ROS/robot software installs identically either way.
+Default is `DOME_TARGET=pi` — omit the line above for a real Pi.
+
+The VM's Ubuntu release must match `UBUNTU_CODENAME` in
+`manifest/config.txt` (currently `noble`/24.04) — see the prerequisite check
+in `02-doc/shell-howto.md` before running these scripts.
+
 ## Running Tests
 
 Verify manifest files are complete and Dockerfiles contain no hardcoded values:

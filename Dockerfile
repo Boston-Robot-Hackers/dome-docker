@@ -43,6 +43,7 @@ RUN --mount=type=ssh \
       done < <(awk -v s="${section}" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' /manifest/repos.txt); \
     }; \
     clone_section root "${DOME_HOME}"; \
+    clone_section root-pi "${DOME_HOME}"; \
     clone_section ros_ws "${DOME_HOME}/ros2_ws/src"; \
     clone_section uros_ws "${DOME_HOME}/uros_ws/src"; \
     chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"

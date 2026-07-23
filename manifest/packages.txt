@@ -5,7 +5,6 @@ clang-format
 cmake
 curl
 git
-i2c-tools
 iproute2
 iptables
 iputils-ping
@@ -14,7 +13,6 @@ make
 meson
 nano
 netcat-openbsd
-raspi-config
 ninja-build
 openssh-client
 alsa-utils
@@ -35,6 +33,10 @@ ripgrep
 software-properties-common
 tar
 wget
+
+[apt-pi]
+i2c-tools
+raspi-config
 
 [ros]
 ament-cmake-clang-format

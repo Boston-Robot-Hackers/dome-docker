@@ -1,4 +1,6 @@
-# Project defaults. Override DOME_USER in manifest/user.txt (gitignored).
+# Project defaults. Override DOME_USER/DOME_TARGET in manifest/user.txt (gitignored).
 ROS_DISTRO=kilted
 UBUNTU_CODENAME=noble
 DOME_USER=robot
+# DOME_TARGET=pi|vm — pi installs Pi-hardware packages/repos/overlays; vm skips them.
+DOME_TARGET=pi
