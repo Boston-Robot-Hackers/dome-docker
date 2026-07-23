@@ -1,24 +1,28 @@
-# Dome Docker: How To
+# Howto: Dome Docker Scenarios
 
-Two paths from a blank microSD to a running ROS 2 environment on a Raspberry Pi 4 or 5.
+Three scenarios for getting to a running ROS 2 environment. All three read
+from the same `manifest/` — single source of truth for packages, repos, and
+build flags.
 
-## Which path?
+## Which scenario?
 
-| | Docker | Bare-Metal Shell |
-|---|---|---|
-| ROS runs in | Container | Natively on Pi |
-| Build happens on | Mac (cross-compile) | Pi itself |
-| Image update | `docker compose pull` | `git pull` + re-run scripts |
-| Isolation | Strong | None |
-| Resource overhead | Higher | Lower |
-| Best for | Most users | Pi-only, no Mac needed |
+| | 1. Raspberry Pi (microSD) | 2. VM (bare Ubuntu) | 3. Docker |
+|---|---|---|---|
+| Hardware | Pi 4 or 5 | VMware/Parallels/cloud VM | Pi 4 or 5 |
+| Setup starts from | Flashing a microSD | An already-installed Ubuntu 24.04 VM | Flashing a microSD |
+| ROS runs in | Natively on the Pi | Natively in the VM | Container |
+| Build happens on | The Pi itself | The VM itself | Mac (cross-compile) |
+| Config | `DOME_TARGET=pi` (default) | `DOME_TARGET=vm` | n/a |
+| Image update | `git pull` + re-run scripts | `git pull` + re-run scripts | `docker compose pull` |
+| Best for | Pi-only, no Mac needed | Development without Pi hardware | Most users deploying to a Pi |
+| Guide | [shell-howto.md](shell-howto.md) | [shell-howto.md](shell-howto.md) | [docker-howto.md](docker-howto.md) |
 
-## Guides
+Scenarios 1 and 2 both use the bare-metal shell path (`shell-howto.md`) — the
+only difference is `DOME_TARGET` and whether you flash a microSD or already
+have a VM running Ubuntu 24.04. Scenario 3 (Docker) is Pi-only — VMs use the
+bare-metal path directly.
 
-- **[docker-howto.md](docker-howto.md)** — Build on Mac, push to Docker Hub, pull and run on Pi
-- **[shell-howto.md](shell-howto.md)** — Install ROS natively on Pi directly from manifest
-
-## Common to both paths
+## Common to scenarios 1 and 3 (Raspberry Pi)
 
 ### Flash the microSD
 

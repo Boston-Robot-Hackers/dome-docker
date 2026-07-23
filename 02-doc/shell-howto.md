@@ -1,29 +1,42 @@
-# Shell Build: Blank microSD or VM to Native ROS
+# Shell Howto: Native ROS Install
 
-Complete path installing ROS natively on the **target** — either a Raspberry Pi
-or a generic VM (VMware, Parallels, etc.). No other machine required after the
-target is reachable over SSH. Everything reads from `manifest/` — same source
-of truth as the Docker build.
+Covers two of the three supported scenarios (see `02-doc/howto.md`):
 
-Two machines are involved throughout:
-- **Primary** — your Mac/laptop, used to flash media, copy SSH keys, and SSH in.
-- **Target** — the Pi or VM being set up. All build scripts (`host-setup.sh`,
-  `bare-metal-base.sh`, `bare-metal-build.sh`) run here, as root.
+- **Scenario 1 — Raspberry Pi, microSD**
+- **Scenario 2 — VM, bare Ubuntu already installed**
 
-Each step below is labeled **Primary** or **Target**. Steps 1 is Pi-only
-(flashing microSD) — skip it for a VM and boot/create the VM instead with
-Ubuntu 24.04 already installed.
+Both scenarios run the exact same three scripts (`host-setup.sh`,
+`bare-metal-base.sh`, `bare-metal-build.sh`); only `DOME_TARGET` differs. No
+other machine required after the target is reachable over SSH. Everything
+reads from `manifest/` — same source of truth as the Docker build (scenario 3).
+
+Two label axes are used throughout:
+- **Primary** / **Target** — which machine you type the command on. Primary =
+  your Mac/laptop. Target = the Pi or VM being set up; all three build scripts
+  run here, as root.
+- **Pi:** / **VM:** — called out inline only where the two scenarios differ.
+  No tag means the step is identical for both.
+
+## Quick reference: what differs
+
+| | Scenario 1 — Pi | Scenario 2 — VM |
+|---|---|---|
+| Step 1 (flash microSD) | Do it | Skip — boot/create the VM with Ubuntu 24.04 instead |
+| `manifest/user.txt` | `DOME_TARGET=pi` (default, can omit) | `DOME_TARGET=vm` (required) |
+| Reaching the target | `ssh user@dome.local` (mDNS) | `ssh user@<vm-ip>` (mDNS often unavailable) |
+| `bare-metal-base.sh` / `bare-metal-build.sh` / `host-setup.sh` | Installs Pi-hardware packages, repos, ReSpeaker overlay | Skips all of it — same scripts, no edits needed |
+| Everything else | identical | identical |
 
 ---
 
 ## Prerequisites
 
-**Hardware (Pi target only):**
+**Pi:**
 - Raspberry Pi 4 or 5
 - microSD card (16 GB or larger)
 - microSD card reader (any machine for flashing)
 
-**VM target:** must be **Ubuntu 24.04 (noble)** specifically — matching
+**VM:** must be **Ubuntu 24.04 (noble)** specifically — matching
 `UBUNTU_CODENAME=noble` in `manifest/config.txt` and the ROS 2 apt repo the
 scripts configure. A different Ubuntu release (older or newer) has mismatched
 system library versions and will fail with cryptic `apt` dependency errors
@@ -34,20 +47,31 @@ Reachable over SSH, with a known IP address. Verify before doing anything else:
 cat /etc/os-release   # VERSION_CODENAME must be "noble"
 ```
 
-**GitHub SSH key** on the target — required for private repos (`rosutils`, `dome`, etc.).
+**Both:** GitHub SSH key on your **Primary** machine — copied to the target in Step 5, required for private repos (`rosutils`, `dome`, etc.).
 
 ---
 
-## Step 1: Primary — Flash microSD (Pi only — skip for VM)
+## Step 1: Primary — Flash microSD
 
-See **[howto.md](howto.md) → Flash the microSD**.
+**Pi:** see **[howto.md](howto.md) → Flash the microSD**.
+
+**VM:** skip this step entirely — boot or create the VM with Ubuntu 24.04
+(noble) already installed, then continue at Step 2.
 
 ---
 
 ## Step 2: Target — First Boot
 
-Pi: see **[howto.md](howto.md) → First boot** for SSH and clone steps.
-VM: boot the VM, note its IP, `ssh` in, and `git clone` this repo.
+**Pi:** see **[howto.md](howto.md) → First boot** for SSH and clone steps.
+
+**VM:** boot the VM, note its IP, then:
+
+```sh
+ssh pitosalas@<vm-ip>
+sudo apt update && sudo apt install -y git ca-certificates
+git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
+cd ~/dome-docker
+```
 
 After cloning, create `manifest/user.txt` on the **target** — this file is gitignored and must be created manually on every machine:
 
@@ -58,28 +82,38 @@ cat manifest/user.txt
 
 Replace `pitosalas` with your actual Linux username. `DOME_USER` must match the user created by `host-setup.sh` (or the user created by Raspberry Pi Imager during flashing). All build scripts read this file to know which user to set up.
 
+**VM only** — also add `DOME_TARGET=vm`, or every script below installs
+Pi-hardware-only packages/repos and the ReSpeaker overlay build fails (no
+`/boot/firmware` on a VM). **Pi needs no action here** — `DOME_TARGET` defaults
+to `pi` in `manifest/config.txt`:
+
+```sh
+printf 'DOME_TARGET=vm\n' >> manifest/user.txt
+```
+
 ---
 
 ## Step 3: Target — Host Setup
 
-Run host setup — creates user, configures udev, sets up system services:
+Identical for both scenarios. Creates user, configures udev, sets up system services:
 
 ```sh
 export DOME_PASSWORD=yourpassword
 sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
-Reboot when complete:
+`host-setup.sh` prints the target's IP addresses just before finishing — note
+one down, then reboot when complete:
 
 ```sh
 sudo reboot
 ```
 
-**Primary** — SSH back in (replace `dome.local` with the target's IP if `.local`
-mDNS doesn't resolve, e.g. most VMs):
+**Primary** — SSH back in:
 
 ```sh
-ssh pitosalas@dome.local
+ssh pitosalas@dome.local   # Pi: mDNS usually works
+# ssh pitosalas@<ip-from-host-setup.sh-output>   # VM: mDNS often doesn't resolve
 cd ~/dome-docker
 ```
 
@@ -87,9 +121,11 @@ cd ~/dome-docker
 
 ## Step 4: Target — Install ROS And Packages
 
-Runs as root. Reads from `manifest/` to install:
+Identical for both scenarios — `DOME_TARGET` set in Step 2 controls what gets
+installed. Runs as root. Reads from `manifest/` to install:
 - ROS 2 apt repository and `ros-kilted-ros-base`
 - All apt, ROS, and pip packages from `manifest/packages.txt` and `manifest/pip.txt`
+  (**Pi only:** `raspi-config`, `i2c-tools`, `RPi.GPIO`, `spidev` also install — skipped when `DOME_TARGET=vm`)
 - Third-party apt repos (Doppler, GitHub CLI) from `manifest/apt-repos.txt`
 - Curl-installed tools (mcfly) from `manifest/tools.txt`
 - Initialises rosdep
@@ -98,27 +134,28 @@ Runs as root. Reads from `manifest/` to install:
 sudo scripts/bare-metal-base.sh
 ```
 
-Takes 10-30 min depending on Pi and network speed.
+Takes 10-30 min depending on target and network speed.
 
 ---
 
 ## Step 5: Target — Clone Repos And Build Workspace
 
-Runs as root. Reads from `manifest/` to:
+Identical for both scenarios. Runs as root. Reads from `manifest/` to:
 - Create home directory structure from `manifest/dirs.txt`
 - Clone all repos from `manifest/repos.txt`
+  (**Pi only:** `libcamera-apps`, `seeed-linux-dtoverlays`, `mic_hat` also clone — skipped when `DOME_TARGET=vm`)
 - Run `rosdep install` with skip-keys from `manifest/rosdep.txt`
 - Run `colcon build` with flags from `manifest/colcon.txt`
 - Install `manifest/bashrc` and `bru` symlink
 
 Requires GitHub SSH key present for private repos.
 
-**Primary** — copy your key from Mac to target. Replace `dome.local`
-with the target's IP address if `.local` mDNS resolution isn't available (e.g. a VM):
+**Primary** — copy your key from Mac to target:
 
 ```sh
-scp ~/.ssh/id_ed25519 pitosalas@dome.local:~/.ssh/id_ed25519
+scp ~/.ssh/id_ed25519 pitosalas@dome.local:~/.ssh/id_ed25519       # Pi
 scp ~/.ssh/id_ed25519.pub pitosalas@dome.local:~/.ssh/id_ed25519.pub
+# use the VM's IP instead of dome.local if mDNS doesn't resolve (common on VMs)
 ```
 
 **Target** — set permissions and verify GitHub access:
@@ -147,6 +184,8 @@ Takes 20-60 min on Pi (colcon build is slow on ARM); faster on a VM with more CP
 
 ## Step 6: Target — Smoke Test
 
+Identical for both scenarios:
+
 ```sh
 source /opt/ros/kilted/setup.bash
 source ~/ros2_ws/install/setup.bash
@@ -163,7 +202,7 @@ Expected: `kilted`, ros2 usage, list of cloned repos.
 
 ## Development Cycle
 
-All commands below run on the **target**.
+All commands below run on the **target**, identically for Pi and VM.
 
 **Pull latest repo changes and rebuild:**
 
@@ -189,7 +228,7 @@ sudo scripts/bare-metal-build.sh   # clones new repo, rebuilds
 
 ## Troubleshooting
 
-All commands below run on the **target**.
+All commands below run on the **target**, identically for Pi and VM unless noted.
 
 **`bare-metal-base.sh` fails on apt-get** — network issue or stale cache:
 ```sh
@@ -217,3 +256,6 @@ colcon build --symlink-install --packages-skip depthai_rospi
 ```sh
 cat manifest/config.txt   # verify ROS_DISTRO, UBUNTU_CODENAME, DOME_USER present
 ```
+
+**VM: `install: invalid target '/boot/firmware/overlays/...'`** — `DOME_TARGET=vm`
+missing from `manifest/user.txt` (Step 2). Add it, then rerun the failing script.

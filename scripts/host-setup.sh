@@ -8,7 +8,9 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-USERNAME="${DOME_USER:-${USER:-robot}}"
+_DOME_USER_DEFAULT=$(grep '^DOME_USER=' manifest/config.txt | cut -d= -f2)
+_DOME_USER_FILE=$(grep '^[[:space:]]*DOME_USER=' manifest/user.txt 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+USERNAME="${DOME_USER:-${_DOME_USER_FILE:-${_DOME_USER_DEFAULT:-robot}}}"
 PASSWORD="${DOME_PASSWORD-}"
 DOCKER_APT_HOST="download.docker.com"
 
@@ -170,3 +172,6 @@ systemctl enable dome
 echo "dome.service installed and enabled."
 
 echo "Host setup complete. Log out and back in for docker group membership to apply."
+echo ""
+echo "Reconnect using one of these IPs if dome.local (mDNS) doesn't resolve:"
+ip -4 -o addr show scope global | awk '{print "  " $2 ": " $4}'

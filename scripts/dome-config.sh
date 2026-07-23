@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 
-# Source this file before running host setup or Docker builds:
+# Source this file before running host setup or Docker builds, from the repo
+# root (required — manifest/ is located relative to the current directory,
+# not this script's path, since BASH_SOURCE isn't reliably set when sourced
+# under zsh):
 #
+#   cd ~/dome-docker
 #   nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
 #   source scripts/dome-config.sh
 
-_MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../manifest"
+_MANIFEST_DIR="$(pwd)/manifest"
+if [[ ! -f "${_MANIFEST_DIR}/config.txt" ]]; then
+    echo "ERROR: ${_MANIFEST_DIR}/config.txt not found." >&2
+    echo "Source this file from the repo root: cd ~/dome-docker && source scripts/dome-config.sh" >&2
+    return 1
+fi
 
 _require_field() {
     local file="$1" key="$2"

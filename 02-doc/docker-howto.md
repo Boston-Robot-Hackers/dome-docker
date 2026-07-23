@@ -1,6 +1,7 @@
-# Docker Build: Blank microSD to Running Container
+# Docker Howto: Blank microSD to Running Container
 
-Complete path using Docker. Build happens on Mac; container runs on Pi.
+Scenario 3 of 3 (see `02-doc/howto.md`) — Pi-only. Build happens on Mac;
+container runs on Pi. VMs use the bare-metal path instead (`shell-howto.md`).
 
 ---
 
@@ -103,7 +104,8 @@ export DOME_PASSWORD=yourpassword
 sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 ```
 
-Reboot when complete:
+`host-setup.sh` prints the Pi's IP addresses just before finishing — useful if
+`dome.local` (mDNS) doesn't resolve. Reboot when complete:
 
 ```sh
 sudo reboot

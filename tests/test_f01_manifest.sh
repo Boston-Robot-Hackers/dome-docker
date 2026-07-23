@@ -112,6 +112,16 @@ else
     echo "  SKIP: shellcheck not installed"
 fi
 
+echo "--- dome-config.sh sourced under zsh ---"
+if command -v zsh >/dev/null 2>&1; then
+    got=$(cd "${REPO_DIR}" && zsh -c 'source scripts/dome-config.sh && echo "$DOME_USER"' 2>&1)
+    [[ -n "$got" && "$got" != *ERROR* ]] \
+        && pass "dome-config.sh sourced cleanly under zsh (DOME_USER='$got')" \
+        || fail "dome-config.sh under zsh: $got"
+else
+    echo "  SKIP: zsh not installed"
+fi
+
 echo ""
 echo "=== Results: ${PASS} passed, ${FAIL} failed ==="
 [[ "${FAIL}" -eq 0 ]]

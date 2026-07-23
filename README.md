@@ -1,20 +1,96 @@
-# Dome Docker
+# README: Dome Docker
 
-Automation and runbooks for building a ROS 2 environment on a Raspberry Pi 4 or 5
-running Ubuntu Server 24.04 LTS. Supports two build paths:
+Automation and runbooks for building a ROS 2 environment. Three scenarios:
 
-- **Docker** — build on Mac, push to Docker Hub, run as container on Pi
-- **Bare-metal** — install ROS natively on Pi directly from manifest scripts
+1. **Raspberry Pi, microSD** — flash a card, install ROS natively (`DOME_TARGET=pi`, default)
+2. **VM, bare Ubuntu 24.04 already installed** — same native install, no Pi hardware (`DOME_TARGET=vm`)
+3. **Docker** — build on Mac, push to Docker Hub, run as container on a Pi
 
-Both paths read from the same `manifest/` directory — single source of truth for
-all packages, repos, build flags, and configuration.
+Scenarios 1 and 2 share the same bare-metal scripts and differ only in
+`DOME_TARGET` (see [Setting Up A Development VM](#setting-up-a-development-vm)).
+Scenario 3 is Pi-only. All three read from the same `manifest/` directory —
+single source of truth for all packages, repos, build flags, and configuration.
+
+## Local Configuration
+
+Create `manifest/user.txt` (gitignored — never commit this):
+
+```sh
+printf 'DOME_USER=yourname\nDOCKERHUB_USERNAME=your-dockerhub-username\nDOME_PASSWORD=yourpassword\n' > manifest/user.txt
+cat manifest/user.txt
+```
+
+Then source the config before any Docker build or compose command:
+
+```sh
+source scripts/dome-config.sh
+```
 
 ## Getting Started
 
-See `02-doc/howto.md` — overview and path comparison.
+See `02-doc/howto.md` — overview and scenario comparison table.
 
-- `02-doc/docker-howto.md` — end-to-end Docker path (blank microSD → running container)
-- `02-doc/shell-howto.md` — end-to-end bare-metal path (blank microSD → native ROS)
+- `02-doc/shell-howto.md` — scenarios 1 (Pi microSD) and 2 (VM, bare Ubuntu) → native ROS
+- `02-doc/docker-howto.md` — scenario 3 (Docker): blank microSD → running container
+
+## Setting Up A Development VM
+
+Scenario 2: `scripts/host-setup.sh`, `scripts/bare-metal-base.sh`, and
+`scripts/bare-metal-build.sh` also support provisioning a generic Ubuntu 24.04
+(noble) VM (VMware, Parallels, cloud) instead of a Raspberry Pi, for
+development without hardware. Set `DOME_TARGET=vm` in `manifest/user.txt`:
+
+```sh
+printf 'DOME_TARGET=vm\n' >> manifest/user.txt
+```
+
+With `DOME_TARGET=vm`, all three scripts skip Pi-hardware-only work: the
+ReSpeaker overlay build (`host-setup.sh`), `raspi-config`/`i2c-tools`
+(`bare-metal-base.sh` apt), `RPi.GPIO`/`spidev` (`bare-metal-base.sh` pip),
+and the `libcamera-apps`/`seeed-linux-dtoverlays`/`mic_hat` repo clones
+(`bare-metal-build.sh`). ROS/robot software installs identically either way.
+Default is `DOME_TARGET=pi` — omit the line above for a real Pi.
+
+The VM's Ubuntu release must match `UBUNTU_CODENAME` in
+`manifest/config.txt` (currently `noble`/24.04) — see the prerequisite check
+in `02-doc/shell-howto.md` before running these scripts.
+
+## Running Tests
+
+Verify manifest files are complete and Dockerfiles contain no hardcoded values:
+
+```sh
+bash tests/test_f01_manifest.sh
+```
+
+## Optional Large Dependencies
+
+Install on demand inside the container:
+
+```sh
+install-optional-deps.sh           # all optional deps
+install-optional-deps.sh torch     # torch + torchvision (~1 GB) — dome_vision ML
+install-optional-deps.sh piper     # piper TTS + voice model (~110 MB) — dome_voice speech
+```
+
+Safe to re-run. `torch` takes 10-15 min first install on Pi.
+
+## Runtime Data
+
+Container volume mounts that persist across restarts:
+
+- `runtime-data/ros/` → `~/.ros`
+- `runtime-data/control/` → `~/.control`
+- `runtime-data/dome/` → `~/.dome`
+- `runtime-data/config/` → `~/.config`
+
+## Security Notes
+
+Never commit `manifest/user.txt`, `.env` files, private keys, Wi-Fi credentials,
+or netplan files with passwords. Reviewed local copies go in `host-files/` (gitignored).
+
+Removing secrets from the current tree does not remove them from git history.
+Before publishing, rewrite or recreate history if it ever contained secrets.
 
 ## Repository Layout
 
@@ -71,77 +147,3 @@ See `02-doc/manifest-format.md` for format details on each file.
 | `runtime-data/` | Container volume mounts — persists across restarts (gitignored except subdirs) |
 | `tests/` | Test scripts — run `bash tests/test_f01_manifest.sh` to verify manifest integrity |
 | `inventory/` | Live Pi package snapshot from `collect-inventory.sh` (gitignored) |
-
-## Local Configuration
-
-Create `manifest/user.txt` (gitignored — never commit this):
-
-```sh
-printf 'DOME_USER=yourname\nDOCKERHUB_USERNAME=your-dockerhub-username\nDOME_PASSWORD=yourpassword\n' > manifest/user.txt
-cat manifest/user.txt
-```
-
-Then source the config before any Docker build or compose command:
-
-```sh
-source scripts/dome-config.sh
-```
-
-## Setting Up A Development VM
-
-`scripts/host-setup.sh`, `scripts/bare-metal-base.sh`, and
-`scripts/bare-metal-build.sh` also support provisioning a generic Ubuntu 24.04
-(noble) VM (VMware, Parallels, cloud) instead of a Raspberry Pi, for
-development without hardware. Set `DOME_TARGET=vm` in `manifest/user.txt`:
-
-```sh
-printf 'DOME_TARGET=vm\n' >> manifest/user.txt
-```
-
-With `DOME_TARGET=vm`, all three scripts skip Pi-hardware-only work: the
-ReSpeaker overlay build (`host-setup.sh`), `raspi-config`/`i2c-tools`
-(`bare-metal-base.sh` apt), `RPi.GPIO`/`spidev` (`bare-metal-base.sh` pip),
-and the `libcamera-apps`/`seeed-linux-dtoverlays`/`mic_hat` repo clones
-(`bare-metal-build.sh`). ROS/robot software installs identically either way.
-Default is `DOME_TARGET=pi` — omit the line above for a real Pi.
-
-The VM's Ubuntu release must match `UBUNTU_CODENAME` in
-`manifest/config.txt` (currently `noble`/24.04) — see the prerequisite check
-in `02-doc/shell-howto.md` before running these scripts.
-
-## Running Tests
-
-Verify manifest files are complete and Dockerfiles contain no hardcoded values:
-
-```sh
-bash tests/test_f01_manifest.sh
-```
-
-## Runtime Data
-
-Container volume mounts that persist across restarts:
-
-- `runtime-data/ros/` → `~/.ros`
-- `runtime-data/control/` → `~/.control`
-- `runtime-data/dome/` → `~/.dome`
-- `runtime-data/config/` → `~/.config`
-
-## Optional Large Dependencies
-
-Install on demand inside the container:
-
-```sh
-install-optional-deps.sh           # all optional deps
-install-optional-deps.sh torch     # torch + torchvision (~1 GB) — dome_vision ML
-install-optional-deps.sh piper     # piper TTS + voice model (~110 MB) — dome_voice speech
-```
-
-Safe to re-run. `torch` takes 10-15 min first install on Pi.
-
-## Security Notes
-
-Never commit `manifest/user.txt`, `.env` files, private keys, Wi-Fi credentials,
-or netplan files with passwords. Reviewed local copies go in `host-files/` (gitignored).
-
-Removing secrets from the current tree does not remove them from git history.
-Before publishing, rewrite or recreate history if it ever contained secrets.
