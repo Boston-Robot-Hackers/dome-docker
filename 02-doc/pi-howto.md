@@ -95,6 +95,12 @@ sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
 `TARGET_HOST` (set in Step 2) doesn't match one of them, update it now —
 then reboot when complete:
 
+> udev rules only get copied to `/etc/udev/rules.d/` when this script runs.
+> If you pull changes to `host-file-templates/etc/udev/rules.d/*.rules`
+> later, re-run `sudo scripts/host-setup.sh` (or manually `install` the
+> file and run `sudo udevadm control --reload-rules && sudo udevadm trigger`)
+> to apply them — a plain `git pull` does not.
+
 ```sh
 sudo reboot
 ```
