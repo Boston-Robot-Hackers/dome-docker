@@ -1,6 +1,8 @@
 # Curl-installed tools (not available via apt).
-# method = curl-sh:   pipe URL to sh with optional args.
-# method = curl-bash: pipe URL to bash with optional args.
+# method      = curl-sh:   pipe URL to sh with optional args.
+# method      = curl-bash: pipe URL to bash with optional args.
+# run_as_user = true: run as DOME_USER instead of root (for installers that
+#               write into $HOME and refuse to run under sudo).
 
 [mcfly]
 method = curl-sh
@@ -8,9 +10,11 @@ url    = https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh
 args   = --git cantino/mcfly --force
 
 [claude-code]
-method = curl-bash
-url    = https://claude.ai/install.sh
+method      = curl-bash
+url         = https://claude.ai/install.sh
+run_as_user = true
 
 [kimi-code]
-method = curl-bash
-url    = https://code.kimi.com/kimi-code/install.sh
+method      = curl-bash
+url         = https://code.kimi.com/kimi-code/install.sh
+run_as_user = true

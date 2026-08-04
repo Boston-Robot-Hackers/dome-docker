@@ -15,6 +15,10 @@ source "${MANIFEST_DIR}/lib.sh"
 
 ROS_DISTRO=$(manifest_config ROS_DISTRO "${MANIFEST_DIR}/config.txt")
 UBUNTU_CODENAME=$(manifest_config UBUNTU_CODENAME "${MANIFEST_DIR}/config.txt")
+_DOME_USER_DEFAULT=$(manifest_config DOME_USER "${MANIFEST_DIR}/config.txt")
+_DOME_USER_FILE=$(grep '^[[:space:]]*DOME_USER=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+# Priority: env var > user.txt > config.txt default
+DOME_USER="${DOME_USER:-${_DOME_USER_FILE:-${_DOME_USER_DEFAULT}}}"
 _DOME_TARGET_DEFAULT=$(manifest_config DOME_TARGET "${MANIFEST_DIR}/config.txt")
 _DOME_TARGET_FILE=$(grep '^[[:space:]]*DOME_TARGET=' "${MANIFEST_DIR}/user.txt" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
 DOME_TARGET="${DOME_TARGET:-${_DOME_TARGET_FILE:-${_DOME_TARGET_DEFAULT}}}"
@@ -82,14 +86,20 @@ for sect in $(manifest_sections "${MANIFEST_DIR}/tools.txt"); do
     method=$(manifest_require "$sect" method "${MANIFEST_DIR}/tools.txt")
     url=$(manifest_require "$sect" url "${MANIFEST_DIR}/tools.txt")
     args=$(manifest_field "$sect" args "${MANIFEST_DIR}/tools.txt")
+    run_as_user=$(manifest_field "$sect" run_as_user "${MANIFEST_DIR}/tools.txt")
     echo "  installing [$sect] via $method..."
-    if [[ "$method" == "curl-sh" ]]; then
-        curl -LSfs "$url" | sh -s -- $args
-    elif [[ "$method" == "curl-bash" ]]; then
-        curl -LSfs "$url" | bash -s -- $args
+    case "$method" in
+        curl-sh) shell="sh" ;;
+        curl-bash) shell="bash" ;;
+        *)
+            echo "ERROR: unknown tool method '$method' for [$sect]" >&2
+            exit 1
+            ;;
+    esac
+    if [[ "$run_as_user" == "true" ]]; then
+        sudo -u "${DOME_USER}" bash -c "curl -LSfs '$url' | $shell -s -- $args"
     else
-        echo "ERROR: unknown tool method '$method' for [$sect]" >&2
-        exit 1
+        curl -LSfs "$url" | "$shell" -s -- $args
     fi
 done
 echo "==> [6/8] curl tools done"

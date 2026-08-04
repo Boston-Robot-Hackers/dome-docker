@@ -4,6 +4,7 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST_DIR="${REPO_DIR}/manifest"
+source "${MANIFEST_DIR}/lib.sh"
 PASS=0
 FAIL=0
 
@@ -93,9 +94,23 @@ assert_field "${MANIFEST_DIR}/tools.txt" "[claude-code]"
 assert_field "${MANIFEST_DIR}/tools.txt" "[kimi-code]"
 
 echo "--- bare-metal-base.sh supports curl-bash tool method ---"
-grep -q '"curl-bash"' "${REPO_DIR}/scripts/bare-metal-base.sh" \
+grep -q 'curl-bash' "${REPO_DIR}/scripts/bare-metal-base.sh" \
     && pass "bare-metal-base.sh handles curl-bash method" \
     || fail "bare-metal-base.sh handles curl-bash method"
+
+echo "--- bare-metal-base.sh runs run_as_user tools as DOME_USER, not root ---"
+grep -q 'run_as_user' "${REPO_DIR}/scripts/bare-metal-base.sh" \
+    && pass "bare-metal-base.sh reads run_as_user field" \
+    || fail "bare-metal-base.sh reads run_as_user field"
+grep -q 'sudo -u "\${DOME_USER}"' "${REPO_DIR}/scripts/bare-metal-base.sh" \
+    && pass "bare-metal-base.sh can run tool installers as DOME_USER" \
+    || fail "bare-metal-base.sh can run tool installers as DOME_USER"
+for tool in claude-code kimi-code; do
+    val=$(manifest_field "$tool" run_as_user "${MANIFEST_DIR}/tools.txt")
+    [[ "$val" == "true" ]] \
+        && pass "tools.txt [$tool] run_as_user=true" \
+        || fail "tools.txt [$tool] run_as_user not set to true"
+done
 
 echo "--- lib.sh functions work ---"
 tmpfile=$(mktemp)
