@@ -1,7 +1,16 @@
 # Curl-installed tools (not available via apt).
-# method = curl-sh: pipe URL to sh with optional args.
+# method = curl-sh:   pipe URL to sh with optional args.
+# method = curl-bash: pipe URL to bash with optional args.
 
 [mcfly]
 method = curl-sh
 url    = https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh
 args   = --git cantino/mcfly
+
+[claude-code]
+method = curl-bash
+url    = https://claude.ai/install.sh
+
+[kimi-code]
+method = curl-bash
+url    = https://code.kimi.com/kimi-code/install.sh

@@ -17,7 +17,7 @@ assert_file() {
 
 assert_field() {
     local file="$1" key="$2"
-    grep -q "^${key}" "$file" && pass "${file#$REPO_DIR/} has '$key'" || fail "${file#$REPO_DIR/} missing '$key'"
+    grep -qF "$key" "$file" && pass "${file#$REPO_DIR/} has '$key'" || fail "${file#$REPO_DIR/} missing '$key'"
 }
 
 assert_no_hardcode() {
@@ -87,8 +87,15 @@ echo "--- dirs.txt non-empty ---"
 count=$(grep -c '^[^#[:space:]]' "${MANIFEST_DIR}/dirs.txt" || true)
 [[ "$count" -gt 0 ]] && pass "dirs.txt has $count entries" || fail "dirs.txt empty"
 
-echo "--- tools.txt has mcfly ---"
+echo "--- tools.txt has mcfly, claude-code, kimi-code ---"
 assert_field "${MANIFEST_DIR}/tools.txt" "[mcfly]"
+assert_field "${MANIFEST_DIR}/tools.txt" "[claude-code]"
+assert_field "${MANIFEST_DIR}/tools.txt" "[kimi-code]"
+
+echo "--- bare-metal-base.sh supports curl-bash tool method ---"
+grep -q '"curl-bash"' "${REPO_DIR}/scripts/bare-metal-base.sh" \
+    && pass "bare-metal-base.sh handles curl-bash method" \
+    || fail "bare-metal-base.sh handles curl-bash method"
 
 echo "--- lib.sh functions work ---"
 tmpfile=$(mktemp)

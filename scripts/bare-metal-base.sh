@@ -85,6 +85,8 @@ for sect in $(manifest_sections "${MANIFEST_DIR}/tools.txt"); do
     echo "  installing [$sect] via $method..."
     if [[ "$method" == "curl-sh" ]]; then
         curl -LSfs "$url" | sh -s -- $args
+    elif [[ "$method" == "curl-bash" ]]; then
+        curl -LSfs "$url" | bash -s -- $args
     else
         echo "ERROR: unknown tool method '$method' for [$sect]" >&2
         exit 1
