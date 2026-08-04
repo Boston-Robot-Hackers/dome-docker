@@ -116,6 +116,15 @@ assert_no_hardcode "${REPO_DIR}/Dockerfile" "\-\-symlink-install" "colcon --syml
 assert_no_hardcode "${REPO_DIR}/Dockerfile" "ament_python gazebo_ros_pkgs" "rosdep skip-keys"
 assert_no_hardcode "${REPO_DIR}/Dockerfile" '\.local/bin"' "hardcoded dirs"
 
+echo "--- repos.txt entries parse via clone_section's awk extraction ---"
+for sect in root root-pi ros_ws uros_ws; do
+    count=$(awk -v s="$sect" '$0=="["s"]"{f=1;next} /^\[/{f=0} f && /^[^#[:space:]]/ && NF' \
+        "${MANIFEST_DIR}/repos.txt" | wc -l | tr -d ' ')
+    [[ "$count" -gt 0 ]] \
+        && pass "repos.txt [$sect] has $count entries extractable by clone_section" \
+        || fail "repos.txt [$sect] extracted 0 entries -- check for leading whitespace on entry lines"
+done
+
 echo "--- clone_section skips already-cloned repos ---"
 grep -q '\[\[ -d "${base_dir}/${dest}" \]\]' "${REPO_DIR}/scripts/bare-metal-build.sh" \
     && pass "bare-metal-build.sh clone_section checks for existing dest dir before cloning" \

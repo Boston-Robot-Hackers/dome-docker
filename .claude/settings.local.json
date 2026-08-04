@@ -21,7 +21,9 @@
       "Bash(ssh-add -l)",
       "Bash(ssh -T git@github.com -o BatchMode=yes)",
       "Bash(ssh-keyscan github.com)",
-      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f01_manifest.sh)"
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f01_manifest.sh)",
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f02_file_layout.sh)",
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f03_vm_target.sh)"
     ]
   }
 }
