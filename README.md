@@ -11,7 +11,22 @@ Scenarios 1 and 2 share the same bare-metal scripts and differ only in
 Scenario 3 is Pi-only. All three read from the same `manifest/` directory —
 single source of truth for all packages, repos, build flags, and configuration.
 
+## Getting Started
+
+Pick your scenario, then follow that guide start to finish — each is a
+single, self-contained thread, no scenario-switching mid-document:
+
+- **Scenario 1 — Pi, microSD:** `02-doc/pi-howto.md`
+- **Scenario 2 — VM, bare Ubuntu 24.04:** `02-doc/vm-howto.md`
+- **Scenario 3 — Docker:** `02-doc/docker-howto.md` (covers **Local
+  Configuration** below as part of its own Step 1)
+
+See `02-doc/howto.md` for the full scenario comparison table.
+
 ## Local Configuration
+
+**Docker scenario only** — scenarios 1 and 2 create `manifest/user.txt` on
+the target machine instead, as part of their own guide's Step 2.
 
 Create `manifest/user.txt` (gitignored — never commit this):
 
@@ -25,35 +40,6 @@ Then source the config before any Docker build or compose command:
 ```sh
 source scripts/dome-config.sh
 ```
-
-## Getting Started
-
-See `02-doc/howto.md` — overview and scenario comparison table.
-
-- `02-doc/shell-howto.md` — scenarios 1 (Pi microSD) and 2 (VM, bare Ubuntu) → native ROS
-- `02-doc/docker-howto.md` — scenario 3 (Docker): blank microSD → running container
-
-## Setting Up A Development VM
-
-Scenario 2: `scripts/host-setup.sh`, `scripts/bare-metal-base.sh`, and
-`scripts/bare-metal-build.sh` also support provisioning a generic Ubuntu 24.04
-(noble) VM (VMware, Parallels, cloud) instead of a Raspberry Pi, for
-development without hardware. Set `DOME_TARGET=vm` in `manifest/user.txt`:
-
-```sh
-printf 'DOME_TARGET=vm\n' >> manifest/user.txt
-```
-
-With `DOME_TARGET=vm`, all three scripts skip Pi-hardware-only work: the
-ReSpeaker overlay build (`host-setup.sh`), `raspi-config`/`i2c-tools`
-(`bare-metal-base.sh` apt), `RPi.GPIO`/`spidev` (`bare-metal-base.sh` pip),
-and the `libcamera-apps`/`seeed-linux-dtoverlays`/`mic_hat` repo clones
-(`bare-metal-build.sh`). ROS/robot software installs identically either way.
-Default is `DOME_TARGET=pi` — omit the line above for a real Pi.
-
-The VM's Ubuntu release must match `UBUNTU_CODENAME` in
-`manifest/config.txt` (currently `noble`/24.04) — see the prerequisite check
-in `02-doc/shell-howto.md` before running these scripts.
 
 ## Running Tests
 

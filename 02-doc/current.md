@@ -1,38 +1,73 @@
 # Current Status
 
-**Date:** 2026-07-23
-**Session:** F03 T10 in progress — live VM bring-up surfacing and fixing real bugs
+**Date:** 2026-08-03
+**Session:** F03 T10 in progress — live Pi microSD bring-up surfacing and fixing real bugs; doc restructure
 
 ## Status
 F02 complete. F03 (`DOME_TARGET=pi|vm`) code+tests done (T01-T09). T10 (manual
-VM/Pi verification) is now actively in progress — the user is running a real
-Ubuntu 24.04 VM bring-up and this session has been fixing bugs and doc gaps
-as they surface live, rather than doing it in this environment.
+VM/Pi verification) is actively in progress — this session covered a live Pi
+microSD bring-up (previous session covered VM), plus a `.claude/` scaffold
+sync from `mydev/j3` and a doc restructure requested by the user.
 
 ## What Was Done
-- F02: moved 9 root shell scripts to `scripts/`, `compose.yaml` to `compose/`
-- F03 implemented (TF03 T01-T09): `DOME_TARGET=pi|vm` in `manifest/config.txt`; split `packages.txt`/`pip.txt`/`repos.txt` into base/`-pi` sections; `bare-metal-base.sh`/`bare-metal-build.sh`/`host-setup.sh` all target-aware
-- I01 opened then closed: earlier VM failure traced to wrong Ubuntu release, not a repo defect
-- Docs reframed around 3 explicit scenarios (Pi microSD / VM bare Ubuntu / Docker) across `README.md`, `02-doc/howto.md`, `02-doc/shell-howto.md`, `02-doc/docker-howto.md`
 
-### This session — bugs found live during actual T10 VM bring-up:
-- `scripts/dome-config.sh`: resolved `manifest/` one level above repo root when `source`d under zsh (`BASH_SOURCE` not populated by zsh on plain `source`). Fixed to resolve from `$(pwd)`; regression test added.
+### This session (2026-08-03) — Pi bring-up, doc restructure
+- Copied `.claude/` from `mydev/j3` over dome-docker's, replacing
+  bootstrap/literate/process/style_guide/templates/commands/settings.json;
+  kept dome-docker's own `settings.local.json` (had uncommitted local
+  permission grants).
+- README was confusing about where to start for a Pi microSD install — its
+  "Local Configuration" section read as a universal first step but is
+  actually Docker-only. Fixed by adding a scenario-routing "Getting Started"
+  section up top.
+- Bigger restructure per explicit user request: `02-doc/shell-howto.md`
+  (interleaved Pi/VM steps with Primary/Target + Pi:/VM: tags every step)
+  was confusing — split into single-thread `02-doc/pi-howto.md` and
+  `02-doc/vm-howto.md`, each self-contained start to finish, repeating
+  shared steps rather than cross-referencing. `shell-howto.md` deleted;
+  `README.md`/`02-doc/howto.md`/`02-doc/docker-howto.md` cross-refs updated.
+- Live Pi bring-up: DNS resolution failure on `curl -sSL` (mcfly install)
+  — transient, resolved by fixing target's DNS. Re-running
+  `bare-metal-base.sh` after a DNS fix is safe (idempotent, apt/pip skip
+  fast on already-satisfied state).
+- Investigated "`dome_nav` missing from `~/ros2_ws/src`" — traced to
+  `manifest/repos.txt` having local, uncommitted additions (`dome_mission`,
+  `dome_nav`, `dome_nav_msgs`, `dome_semantic`, `dome_semantic_msgs`,
+  `metawtf`) and a removal (`camera_ros`) that the Pi's checkout, cloned
+  from GitHub, never received — not a script bug. Resolves once pushed and
+  `git pull`ed on the Pi.
+- `/checkpoint` caught a real regression before it shipped:
+  `manifest/colcon.txt`'s `flags` field was deleted (user intentionally
+  switched off `--symlink-install` for full installs), but
+  `bare-metal-build.sh` hard-required `flags` to be non-empty and would
+  have errored out at the colcon-build step on every target. Fixed the
+  script (empty `flags` is now valid) and the test assertion; full test
+  suite passes (47+43+28, 0 failed).
+- All fixes logged in `04-tasks/chores.md` (bug-fix chores don't need
+  feature/task files per process.md).
+
+### Previous session (2026-07-23) — bugs found live during T10 VM bring-up
+- `scripts/dome-config.sh`: resolved `manifest/` one level above the repo root when `source`d under zsh (`BASH_SOURCE` not populated by zsh on plain `source`). Fixed to resolve from `$(pwd)`; regression test added.
 - `scripts/host-setup.sh`: resolved `DOME_USER` as `root` — only read the env var, never `manifest/user.txt`, so under `sudo` (`$USER=root`) it computed the wrong home dir and manifest lookup failed. Fixed to use env > user.txt > config precedence, matching other scripts.
 - `manifest/packages.txt` `[ros]`: had a bogus `dome-docker` entry (the repo's own name, introduced in an earlier commit with no rationale) — caused `apt-get install ros-kilted-dome-docker` to fail with package-not-found. Removed; regression test added guarding against this exact mistake recurring.
 - `scripts/host-setup.sh` now prints the target's global IPv4 addresses at the end of its run, so VM users (where `dome.local` mDNS often fails) don't have to find the IP externally.
-- `02-doc/shell-howto.md`: fixed several real doc gaps found by walking the VM path live — never told VM users to set `DOME_TARGET=vm`; mixed the Primary/Target (which machine you type on) and Pi/VM (which hardware) label axes inconsistently; implied an SSH key needed to already be on the target when Step 5 is what puts it there; hardcoded `pitosalas`/`dome.local` in the scp commands instead of being generic; didn't note that VM users working in the console directly don't need SSH at all; Step 6 had users manually re-source ROS/workspace setup when `.bashrc` (installed by `bare-metal-build.sh`) already auto-sources `~/rosutils/ros2_robot_bashrc.bash` in every new shell — fixed to say "open a new terminal" instead.
-- Added `TARGET_USER`/`TARGET_HOST` env var convention in `shell-howto.md` Step 2 so later `ssh`/`scp` commands don't need the username/address retyped each time.
+- `02-doc/shell-howto.md` (now split into `pi-howto.md`/`vm-howto.md`): fixed several real doc gaps found by walking the VM path live — never told VM users to set `DOME_TARGET=vm`; mixed the Primary/Target (which machine you type on) and Pi/VM (which hardware) label axes inconsistently; implied an SSH key needed to already be on the target when Step 5 is what puts it there; hardcoded `pitosalas`/`dome.local` in the scp commands instead of being generic; didn't note that VM users working in the console directly don't need SSH at all; Step 6 had users manually re-source ROS/workspace setup when `.bashrc` (installed by `bare-metal-build.sh`) already auto-sources `~/rosutils/ros2_robot_bashrc.bash` in every new shell — fixed to say "open a new terminal" instead.
+- Added `TARGET_USER`/`TARGET_HOST` env var convention so later `ssh`/`scp` commands don't need the username/address retyped each time.
 - Removed all time estimates ("10-30 min", "5-15 min", etc.) from docs and script echo/comments per explicit feedback — duration varies too much across Pi/VM/network to be meaningful.
 - Renamed the 3 howto doc headers to start with their filename (`README: Dome Docker`, `Howto: Dome Docker Scenarios`, `Shell Howto: ...`, `Docker Howto: ...`) per explicit convention request.
-- All fixes logged in `04-tasks/chores.md` (bug-fix chores don't need feature/task files per process.md).
 
 ## Active Features
 - F03 — VM setup support (`notdone`; code+tests done, T10 live bring-up actively in progress and surfacing real fixes as it goes)
+  - F02: moved 9 root shell scripts to `scripts/`, `compose.yaml` to `compose/`
+  - F03 implemented (TF03 T01-T09): `DOME_TARGET=pi|vm` in `manifest/config.txt`; split `packages.txt`/`pip.txt`/`repos.txt` into base/`-pi` sections; `bare-metal-base.sh`/`bare-metal-build.sh`/`host-setup.sh` all target-aware
+  - I01 opened then closed: earlier VM failure traced to wrong Ubuntu release, not a repo defect
+  - Docs reframed around 3 explicit scenarios (Pi microSD / VM bare Ubuntu / Docker) across `README.md`, `02-doc/howto.md`, `02-doc/docker-howto.md`, and (this session) split into per-scenario `pi-howto.md`/`vm-howto.md`
 
 ## Blockers
 None. T10 is unblocked and progressing — each bug hit live has been fixed and pushed same-session.
 
 ## Next Steps
-1. Continue T10: keep working through the live VM bring-up, fixing bugs/doc gaps as they surface
-2. Once VM bring-up completes clean, confirm unchanged behavior with `DOME_TARGET=pi` (or unset) on a real Pi, then close out F03 (move feature+task files to `done/`)
-3. Test bare-metal-base.sh + bare-metal-build.sh on a real Pi (carried over from F01)
+1. Push `manifest/repos.txt`/`manifest/colcon.txt` changes so the Pi's next `git pull` + `bare-metal-build.sh` picks up the newly-added private repos (`dome_mission`, `dome_nav`, `dome_nav_msgs`, `dome_semantic`, `dome_semantic_msgs`, `metawtf`) and the full-install colcon flags.
+2. Continue T10: keep working through the live Pi bring-up, fixing bugs/doc gaps as they surface.
+3. Once Pi bring-up completes clean, confirm unchanged behavior with `DOME_TARGET=vm` on the VM (already exercised previous session), then close out F03 (move feature+task files to `done/`).
+4. Test bare-metal-base.sh + bare-metal-build.sh on a real Pi end-to-end (carried over from F01).

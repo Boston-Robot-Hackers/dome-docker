@@ -1,7 +1,7 @@
 # Docker Howto: Blank microSD to Running Container
 
 Scenario 3 of 3 (see `02-doc/howto.md`) — Pi-only. Build happens on Mac;
-container runs on Pi. VMs use the bare-metal path instead (`shell-howto.md`).
+container runs on Pi. VMs use the bare-metal path instead (`vm-howto.md`).
 
 ---
 

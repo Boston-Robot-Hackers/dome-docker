@@ -78,7 +78,6 @@ for sect in doppler github-cli vscode; do
 done
 
 echo "--- colcon.txt required fields ---"
-assert_field "${MANIFEST_DIR}/colcon.txt" "flags"
 assert_field "${MANIFEST_DIR}/colcon.txt" "packages_skip"
 
 echo "--- rosdep.txt required fields ---"

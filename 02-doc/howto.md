@@ -15,12 +15,13 @@ build flags.
 | Config | `DOME_TARGET=pi` (default) | `DOME_TARGET=vm` | n/a |
 | Image update | `git pull` + re-run scripts | `git pull` + re-run scripts | `docker compose pull` |
 | Best for | Pi-only, no Mac needed | Development without Pi hardware | Most users deploying to a Pi |
-| Guide | [shell-howto.md](shell-howto.md) | [shell-howto.md](shell-howto.md) | [docker-howto.md](docker-howto.md) |
+| Guide | [pi-howto.md](pi-howto.md) | [vm-howto.md](vm-howto.md) | [docker-howto.md](docker-howto.md) |
 
-Scenarios 1 and 2 both use the bare-metal shell path (`shell-howto.md`) — the
-only difference is `DOME_TARGET` and whether you flash a microSD or already
-have a VM running Ubuntu 24.04. Scenario 3 (Docker) is Pi-only — VMs use the
-bare-metal path directly.
+Pick one guide and follow it start to finish — each is a single, self-contained
+thread with no scenario switching mid-document. Scenarios 1 and 2 both
+install ROS natively via the same underlying scripts, differing only in
+`DOME_TARGET`; scenario 3 (Docker) is Pi-only and builds the image on a Mac
+instead.
 
 ## Common to scenarios 1 and 3 (Raspberry Pi)
 

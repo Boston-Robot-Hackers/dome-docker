@@ -108,10 +108,6 @@ chown -R "${DOME_USER}:${DOME_USER}" "${DOME_HOME}"
 echo "==> Building ros2_ws"
 flags=$(awk -F'=[[:space:]]*' '/^flags/{print $2}' "${MANIFEST_DIR}/colcon.txt")
 skip=$(awk -F'=[[:space:]]*' '/^packages_skip/{print $2}' "${MANIFEST_DIR}/colcon.txt")
-if [[ -z "$flags" ]]; then
-    echo "ERROR: flags not set in ${MANIFEST_DIR}/colcon.txt" >&2
-    exit 1
-fi
 sudo -u "${DOME_USER}" bash -c "
     source /opt/ros/${ROS_DISTRO}/setup.bash
     cd ${DOME_HOME}/ros2_ws

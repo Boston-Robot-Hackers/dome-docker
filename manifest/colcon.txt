@@ -1,3 +1,2 @@
 # colcon build configuration.
-flags         = --symlink-install
 packages_skip = depthai_rospi

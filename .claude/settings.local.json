@@ -6,7 +6,18 @@
       "Bash(bash tests/test_f02_file_layout.sh)",
       "Bash(git mv *)",
       "Bash(bash tests/test_f01_manifest.sh)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(git fetch *)",
+      "Bash(git rev-list *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git check-ignore *)",
+      "Bash(command -v ros2)",
+      "Bash(bash tests/test_f03_vm_target.sh22)",
+      "Bash(cp /Users/pitosalas/mydev/dome-docker/.claude/settings.local.json /private/tmp/claude-501/-Users-pitosalas-mydev-dome-docker/ab6a9a72-3f80-4499-aec0-9f21635d3240/scratchpad/settings.local.json.bak)",
+      "Bash(rsync -a --delete --exclude settings.local.json /Users/pitosalas/mydev/j3/.claude/ /Users/pitosalas/mydev/dome-docker/.claude/)",
+      "Bash(cp /private/tmp/claude-501/-Users-pitosalas-mydev-dome-docker/ab6a9a72-3f80-4499-aec0-9f21635d3240/scratchpad/settings.local.json.bak /Users/pitosalas/mydev/dome-docker/.claude/settings.local.json)"
     ]
   }
 }
