@@ -25,6 +25,8 @@ from `mydev/j3` and a doc restructure requested by the user.
   `SWAP_SIZE_MB` note near the `manifest/user.txt` section).
 - Full suite passes: 59+43+28+12 = 142 passed, 0 failed.
 - F04 feature + TF04 task file moved to `done/`.
+- Live-verified on a real Pi: `bare-metal-base.sh` created/activated
+  `/swapfile`, confirmed by user.
 
 ### Previous session (2026-08-03) — Pi bring-up, doc restructure
 - Copied `.claude/` from `mydev/j3` over dome-docker's, replacing
