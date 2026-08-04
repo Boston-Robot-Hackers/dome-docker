@@ -1,17 +1,32 @@
 # Current Status
 
-**Date:** 2026-08-03
-**Session:** F03 T10 in progress — live Pi microSD bring-up surfacing and fixing real bugs; doc restructure
+**Date:** 2026-08-04
+**Session:** F04 (Pi swap config) added and closed same-session; F03 T10 still in progress
 
 ## Status
-F02 complete. F03 (`DOME_TARGET=pi|vm`) code+tests done (T01-T09). T10 (manual
-VM/Pi verification) is actively in progress — this session covered a live Pi
-microSD bring-up (previous session covered VM), plus a `.claude/` scaffold
-sync from `mydev/j3` and a doc restructure requested by the user.
+F02 complete. F04 (Pi-only swapfile config) done — added, implemented, tested,
+closed same session. F03 (`DOME_TARGET=pi|vm`) code+tests done (T01-T09). T10
+(manual VM/Pi verification) is still actively in progress — most recent prior
+session covered a live Pi microSD bring-up, plus a `.claude/` scaffold sync
+from `mydev/j3` and a doc restructure requested by the user.
 
 ## What Was Done
 
-### This session (2026-08-03) — Pi bring-up, doc restructure
+### This session (2026-08-04) — F04 Pi swap config
+- New feature `F04`/`TF04`: `SWAP_SIZE_MB` config key in `manifest/config.txt`
+  (default `2048`, same env > `user.txt` > `config.txt` precedence as
+  `DOME_TARGET`), Pi-only swapfile step added to `bare-metal-base.sh`
+  (`fallocate`/`mkswap`/`swapon`/`/etc/fstab`, idempotent, `SWAP_SIZE_MB=0`
+  disables). Motivated by `colcon build` OOM risk on 4GB Pi5 boards since
+  `manifest/colcon.txt` sets no parallel-job cap.
+- `tests/test_f04_pi_swap.sh` added (12 tests, mocked disk/swap ops — no real
+  `fallocate`/`mkswap`/`swapon` calls in the test run).
+- Docs updated: `README.md` manifest table, `02-doc/pi-howto.md` (new
+  `SWAP_SIZE_MB` note near the `manifest/user.txt` section).
+- Full suite passes: 59+43+28+12 = 142 passed, 0 failed.
+- F04 feature + TF04 task file moved to `done/`.
+
+### Previous session (2026-08-03) — Pi bring-up, doc restructure
 - Copied `.claude/` from `mydev/j3` over dome-docker's, replacing
   bootstrap/literate/process/style_guide/templates/commands/settings.json;
   kept dome-docker's own `settings.local.json` (had uncommitted local
@@ -57,6 +72,8 @@ sync from `mydev/j3` and a doc restructure requested by the user.
 - Renamed the 3 howto doc headers to start with their filename (`README: Dome Docker`, `Howto: Dome Docker Scenarios`, `Shell Howto: ...`, `Docker Howto: ...`) per explicit convention request.
 
 ## Active Features
+- F04 — Pi swap config (`done`) — `SWAP_SIZE_MB` in `manifest/config.txt`,
+  Pi-only idempotent swapfile step in `bare-metal-base.sh`, 12 new tests
 - F03 — VM setup support (`notdone`; code+tests done, T10 live bring-up actively in progress and surfacing real fixes as it goes)
   - F02: moved 9 root shell scripts to `scripts/`, `compose.yaml` to `compose/`
   - F03 implemented (TF03 T01-T09): `DOME_TARGET=pi|vm` in `manifest/config.txt`; split `packages.txt`/`pip.txt`/`repos.txt` into base/`-pi` sections; `bare-metal-base.sh`/`bare-metal-build.sh`/`host-setup.sh` all target-aware

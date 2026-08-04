@@ -4,3 +4,5 @@ UBUNTU_CODENAME=noble
 DOME_USER=robot
 # DOME_TARGET=pi|vm — pi installs Pi-hardware packages/repos/overlays; vm skips them.
 DOME_TARGET=pi
+# SWAP_SIZE_MB — Pi-only swapfile size in MB, guards against colcon build OOM. 0 disables.
+SWAP_SIZE_MB=2048

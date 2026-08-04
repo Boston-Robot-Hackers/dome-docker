@@ -65,6 +65,13 @@ the username you set in Raspberry Pi Imager during flashing. All build
 scripts read this file to know which user to set up. No `DOME_TARGET` line
 needed — it defaults to `pi` in `manifest/config.txt`.
 
+`bare-metal-base.sh` also sets up a swapfile on Pi targets, sized by
+`SWAP_SIZE_MB` in `manifest/config.txt` (default `2048`, i.e. 2GB). This
+guards against `colcon build` OOMing on 4GB Pi5 boards, since
+`manifest/colcon.txt` sets no parallel-job cap and colcon defaults to using
+all cores. Override in `manifest/user.txt` (`SWAP_SIZE_MB=4096` for more
+headroom, `SWAP_SIZE_MB=0` to disable).
+
 **Primary** — set these once so every later `ssh`/`scp` command below can
 just reuse them instead of retyping the username and address each time:
 
