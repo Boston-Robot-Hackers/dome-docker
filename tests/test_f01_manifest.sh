@@ -116,6 +116,11 @@ assert_no_hardcode "${REPO_DIR}/Dockerfile" "\-\-symlink-install" "colcon --syml
 assert_no_hardcode "${REPO_DIR}/Dockerfile" "ament_python gazebo_ros_pkgs" "rosdep skip-keys"
 assert_no_hardcode "${REPO_DIR}/Dockerfile" '\.local/bin"' "hardcoded dirs"
 
+echo "--- clone_section skips already-cloned repos ---"
+grep -q '\[\[ -d "${base_dir}/${dest}" \]\]' "${REPO_DIR}/scripts/bare-metal-build.sh" \
+    && pass "bare-metal-build.sh clone_section checks for existing dest dir before cloning" \
+    || fail "bare-metal-build.sh clone_section checks for existing dest dir before cloning"
+
 echo "--- Bare-metal scripts syntax check ---"
 bash -n "${REPO_DIR}/scripts/bare-metal-base.sh" && pass "bare-metal-base.sh syntax" || fail "bare-metal-base.sh syntax"
 bash -n "${REPO_DIR}/scripts/bare-metal-build.sh" && pass "bare-metal-build.sh syntax" || fail "bare-metal-build.sh syntax"

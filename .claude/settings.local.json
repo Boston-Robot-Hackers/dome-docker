@@ -17,7 +17,11 @@
       "Bash(bash tests/test_f03_vm_target.sh22)",
       "Bash(cp /Users/pitosalas/mydev/dome-docker/.claude/settings.local.json /private/tmp/claude-501/-Users-pitosalas-mydev-dome-docker/ab6a9a72-3f80-4499-aec0-9f21635d3240/scratchpad/settings.local.json.bak)",
       "Bash(rsync -a --delete --exclude settings.local.json /Users/pitosalas/mydev/j3/.claude/ /Users/pitosalas/mydev/dome-docker/.claude/)",
-      "Bash(cp /private/tmp/claude-501/-Users-pitosalas-mydev-dome-docker/ab6a9a72-3f80-4499-aec0-9f21635d3240/scratchpad/settings.local.json.bak /Users/pitosalas/mydev/dome-docker/.claude/settings.local.json)"
+      "Bash(cp /private/tmp/claude-501/-Users-pitosalas-mydev-dome-docker/ab6a9a72-3f80-4499-aec0-9f21635d3240/scratchpad/settings.local.json.bak /Users/pitosalas/mydev/dome-docker/.claude/settings.local.json)",
+      "Bash(ssh-add -l)",
+      "Bash(ssh -T git@github.com -o BatchMode=yes)",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f01_manifest.sh)"
     ]
   }
 }

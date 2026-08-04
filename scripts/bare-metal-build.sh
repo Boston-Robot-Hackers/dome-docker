@@ -57,6 +57,10 @@ clone_section() {
     mkdir -p "${base_dir}"
     while read -r repo dest branch; do
         [[ -z "${repo}" ]] && continue
+        if [[ -d "${base_dir}/${dest}" ]]; then
+            echo "  Skipping ${repo} -> ${base_dir}/${dest} (already exists)"
+            continue
+        fi
         echo "  Cloning ${repo} -> ${base_dir}/${dest}"
         if [[ -n "${branch}" ]]; then
             sudo -u "${DOME_USER}" git clone --branch "${branch}" "${repo}" "${base_dir}/${dest}" \
