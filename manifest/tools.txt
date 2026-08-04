@@ -5,7 +5,7 @@
 [mcfly]
 method = curl-sh
 url    = https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh
-args   = --git cantino/mcfly
+args   = --git cantino/mcfly --force
 
 [claude-code]
 method = curl-bash
