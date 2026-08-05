@@ -15,8 +15,8 @@
 PyAudio
 
 # CLEARLY REQUIRED — camera pipeline (OAK/depthai hardware in use)
-depthai
-depthai-nodes
+# pinned <3: depthai-sdk uses v2 API, breaks on depthai v3
+depthai<3
 depthai-sdk
 blobconverter
 PyTurboJPEG
