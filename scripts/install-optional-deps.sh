@@ -10,8 +10,6 @@ DOME_HOME="${DOME_HOME:-$HOME}"
 install_torch() {
   echo "Installing torch and torchvision (CPU-only, arm64)..."
   pip3 install --break-system-packages torch torchvision --index-url https://download.pytorch.org/whl/cpu
-  echo "Installing dome_vision package..."
-  pip3 install --break-system-packages "${DOME_HOME}/ros2_ws/src/dome_vision/dome_vision/"
   echo "torch/torchvision done."
 }
 
