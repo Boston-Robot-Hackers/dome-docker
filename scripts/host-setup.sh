@@ -183,7 +183,11 @@ else
   echo "DOME_MODE=native — skipping dome.env/dome.service setup."
 fi
 
-echo "Host setup complete. Log out and back in for docker group membership to apply."
+if [[ "${DOME_MODE}" == "docker" ]]; then
+  echo "Host setup complete. Log out and back in for docker group membership to apply."
+else
+  echo "Host setup complete."
+fi
 echo ""
 echo "Reconnect using one of these IPs if dome.local (mDNS) doesn't resolve:"
 ip -4 -o addr show scope global | awk '{print "  " $2 ": " $4}'
