@@ -18,6 +18,10 @@ _DOME_TARGET_DEFAULT=$(grep '^DOME_TARGET=' manifest/config.txt | cut -d= -f2)
 _DOME_TARGET_FILE=$(grep '^[[:space:]]*DOME_TARGET=' manifest/user.txt 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
 DOME_TARGET="${DOME_TARGET:-${_DOME_TARGET_FILE:-${_DOME_TARGET_DEFAULT:-pi}}}"
 
+_DOME_MODE_DEFAULT=$(grep '^DOME_MODE=' manifest/config.txt | cut -d= -f2)
+_DOME_MODE_FILE=$(grep '^[[:space:]]*DOME_MODE=' manifest/user.txt 2>/dev/null | cut -d= -f2 | tr -d '[:space:]' || true)
+DOME_MODE="${DOME_MODE:-${_DOME_MODE_FILE:-${_DOME_MODE_DEFAULT:-native}}}"
+
 default_network_interface() {
   ip route get 1.1.1.1 | awk '{for (i = 1; i <= NF; i++) if ($i == "dev") {print $(i + 1); exit}}'
 }
@@ -27,7 +31,7 @@ check_network_ready() {
     echo "Network is not ready: no route to the internet." >&2
     exit 1
   fi
-  if ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
+  if [[ "${DOME_MODE}" == "docker" ]] && ! getent ahostsv4 "${DOCKER_APT_HOST}" >/dev/null 2>&1; then
     echo "DNS not resolving ${DOCKER_APT_HOST}. Check DNS config and rerun." >&2
     exit 1
   fi
@@ -60,23 +64,27 @@ usermod -aG sudo "${USERNAME}"
 
 check_network_ready
 
-install -m 0755 -d /etc/apt/keyrings
-if [[ ! -f /etc/apt/keyrings/docker.asc ]]; then
-  curl -4 -fsSL "https://${DOCKER_APT_HOST}/linux/ubuntu/gpg" -o /etc/apt/keyrings/docker.asc
-  chmod a+r /etc/apt/keyrings/docker.asc
-fi
+if [[ "${DOME_MODE}" == "docker" ]]; then
+  install -m 0755 -d /etc/apt/keyrings
+  if [[ ! -f /etc/apt/keyrings/docker.asc ]]; then
+    curl -4 -fsSL "https://${DOCKER_APT_HOST}/linux/ubuntu/gpg" -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+  fi
 
-. /etc/os-release
-cat >/etc/apt/sources.list.d/docker.list <<EOF
+  . /etc/os-release
+  cat >/etc/apt/sources.list.d/docker.list <<EOF
 deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://${DOCKER_APT_HOST}/linux/ubuntu ${VERSION_CODENAME} stable
 EOF
 
-apt-get -o Acquire::ForceIPv4=true update
-apt-get -o Acquire::ForceIPv4=true install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  apt-get -o Acquire::ForceIPv4=true update
+  apt-get -o Acquire::ForceIPv4=true install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-systemctl enable docker
-systemctl start docker
-usermod -aG docker "${USERNAME}"
+  systemctl enable docker
+  systemctl start docker
+  usermod -aG docker "${USERNAME}"
+else
+  echo "DOME_MODE=native — skipping Docker install."
+fi
 
 install -m 0755 -d /etc/udev/rules.d
 _udev_installed=0
@@ -143,33 +151,37 @@ else
   echo "DOME_TARGET=vm — skipping ReSpeaker overlay build (Pi-only, needs /boot/firmware)."
 fi
 
-DOME_DIR="/home/${USERNAME}/dome-docker"
-mkdir -p \
-  "${DOME_DIR}/runtime-data/ros" \
-  "${DOME_DIR}/runtime-data/control" \
-  "${DOME_DIR}/runtime-data/dome"
-chown -R "${USERNAME}:${USERNAME}" "${DOME_DIR}/runtime-data"
+if [[ "${DOME_MODE}" == "docker" ]]; then
+  DOME_DIR="/home/${USERNAME}/dome-docker"
+  mkdir -p \
+    "${DOME_DIR}/runtime-data/ros" \
+    "${DOME_DIR}/runtime-data/control" \
+    "${DOME_DIR}/runtime-data/dome"
+  chown -R "${USERNAME}:${USERNAME}" "${DOME_DIR}/runtime-data"
 
-# Generate dome.env (plain KEY=VALUE) for use by dome.service EnvironmentFile.
-MANIFEST_DIR="${DOME_DIR}/manifest"
-DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${MANIFEST_DIR}/user.txt" | cut -d= -f2)
-ROS_DISTRO_VAL=$(grep '^ROS_DISTRO=' "${MANIFEST_DIR}/config.txt" | cut -d= -f2)
-cat > "${DOME_DIR}/dome.env" <<EOF
+  # Generate dome.env (plain KEY=VALUE) for use by dome.service EnvironmentFile.
+  MANIFEST_DIR="${DOME_DIR}/manifest"
+  DOCKERHUB_USERNAME=$(grep '^DOCKERHUB_USERNAME=' "${MANIFEST_DIR}/user.txt" | cut -d= -f2)
+  ROS_DISTRO_VAL=$(grep '^ROS_DISTRO=' "${MANIFEST_DIR}/config.txt" | cut -d= -f2)
+  cat > "${DOME_DIR}/dome.env" <<EOF
 DOME_USER=${USERNAME}
 DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
 DOME_BASE_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-base:${ROS_DISTRO_VAL}
 DOME_IMAGE=docker.io/${DOCKERHUB_USERNAME}/dome-docker:dome-${ROS_DISTRO_VAL}
 ROS_DISTRO=${ROS_DISTRO_VAL}
 EOF
-chmod 0600 "${DOME_DIR}/dome.env"
-chown "${USERNAME}:${USERNAME}" "${DOME_DIR}/dome.env"
+  chmod 0600 "${DOME_DIR}/dome.env"
+  chown "${USERNAME}:${USERNAME}" "${DOME_DIR}/dome.env"
 
-SERVICE_SRC="${DOME_DIR}/host-file-templates/etc/systemd/system/dome.service"
-sed "s/@@DOME_USER@@/${USERNAME}/g" "${SERVICE_SRC}" > /etc/systemd/system/dome.service
-chmod 0644 /etc/systemd/system/dome.service
-systemctl daemon-reload
-systemctl enable dome
-echo "dome.service installed and enabled."
+  SERVICE_SRC="${DOME_DIR}/host-file-templates/etc/systemd/system/dome.service"
+  sed "s/@@DOME_USER@@/${USERNAME}/g" "${SERVICE_SRC}" > /etc/systemd/system/dome.service
+  chmod 0644 /etc/systemd/system/dome.service
+  systemctl daemon-reload
+  systemctl enable dome
+  echo "dome.service installed and enabled."
+else
+  echo "DOME_MODE=native — skipping dome.env/dome.service setup."
+fi
 
 echo "Host setup complete. Log out and back in for docker group membership to apply."
 echo ""

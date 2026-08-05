@@ -1,10 +1,11 @@
 # Current Status
 
-**Date:** 2026-08-04
-**Session:** F04 (Pi swap config) added and closed same-session; F03 T10 still in progress
+**Date:** 2026-08-05
+**Session:** F05 (DOME_MODE native|docker) added and closed same-session; F03 T10 still in progress
 
 ## Status
-F02 complete. F04 (Pi-only swapfile config) done — added, implemented, tested,
+F02 complete. F05 (`DOME_MODE=native|docker`) done — added, implemented, tested,
+closed same session. F04 (Pi-only swapfile config) done — added, implemented, tested,
 closed same session. F03 (`DOME_TARGET=pi|vm`) code+tests done (T01-T09). T10
 (manual VM/Pi verification) is still actively in progress — most recent prior
 session covered a live Pi microSD bring-up, plus a `.claude/` scaffold sync
@@ -12,7 +13,32 @@ from `mydev/j3` and a doc restructure requested by the user.
 
 ## What Was Done
 
-### This session (2026-08-04) — F04 Pi swap config
+### This session (2026-08-05) — F05 DOME_MODE native|docker
+- Live Pi bring-up (`pi-howto.md`, Scenario 1) hit two real bugs in
+  `host-setup.sh`: (1) transient DNS failure resolving `github.com` mid-run,
+  caused by `needrestart` bouncing `systemd-resolved.service` right before
+  the ReSpeaker overlay `git clone` — not a real network outage, resolved by
+  re-running; noted in `02-doc/pi-howto.md` Troubleshooting. (2) Real bug:
+  `host-setup.sh` unconditionally installed Docker and enabled `dome.service`
+  (`docker compose run --rm dome`) regardless of scenario — Scenarios 1
+  (Pi-native) and 2 (VM-native) never use Docker, but `DOME_TARGET=pi` alone
+  can't distinguish Scenario 1 from Scenario 3 (both default to
+  `DOME_TARGET=pi`, only Scenario 3 needs Docker).
+- New feature `F05`/`TF05`: added `DOME_MODE=native|docker` to
+  `manifest/config.txt` (default `native`, same env > `user.txt` >
+  `config.txt` precedence as `DOME_TARGET`). Gated the Docker apt-repo
+  setup/install/enable and the `dome.env`/`dome.service` templating block in
+  `host-setup.sh` behind `DOME_MODE=docker`; native mode now prints a
+  one-line skip instead. `docker-howto.md` Step 4 updated to tell
+  Scenario-3 users to add `DOME_MODE=docker` to the Pi's `manifest/user.txt`.
+  `README.md` manifest table updated.
+- `tests/test_f05_dome_mode.sh` added (7 tests: config default, script
+  references, syntax, and stubbed behavior tests confirming native mode
+  makes zero Docker/dome.service calls and docker mode makes them).
+- Full suite passes: 59+43+28+12+7 = 149 passed, 0 failed.
+- F05 feature + TF05 task file moved to `done/`.
+
+### Previous session (2026-08-04) — F04 Pi swap config
 - New feature `F04`/`TF04`: `SWAP_SIZE_MB` config key in `manifest/config.txt`
   (default `2048`, same env > `user.txt` > `config.txt` precedence as
   `DOME_TARGET`), Pi-only swapfile step added to `bare-metal-base.sh`

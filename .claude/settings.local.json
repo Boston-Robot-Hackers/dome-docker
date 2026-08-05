@@ -23,7 +23,26 @@
       "Bash(ssh-keyscan github.com)",
       "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f01_manifest.sh)",
       "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f02_file_layout.sh)",
-      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f03_vm_target.sh)"
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f03_vm_target.sh)",
+      "Bash(bash -n /Users/pitosalas/mydev/dome-docker/scripts/bare-metal-base.sh)",
+      "Bash(chmod +x /Users/pitosalas/mydev/dome-docker/tests/test_f04_pi_swap.sh)",
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f04_pi_swap.sh)",
+      "Bash(find / -maxdepth 4 -iname \"rosutils\")",
+      "Read(//Users/pitosalas/mydev/**)",
+      "Bash(python3 -m pip index versions depthai)",
+      "Bash(curl -s https://pypi.org/pypi/depthai/json)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(sorted\\(d['releases'].keys\\(\\)\\)[-10:]\\)\")",
+      "Bash(curl -s https://pypi.org/pypi/depthai-sdk/json)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s https://pypi.org/pypi/depthai-nodes/json)",
+      "Bash(ip route *)",
+      "Bash(ip addr *)",
+      "Read(//private/var/run/**)",
+      "Bash(bash -n /Users/pitosalas/mydev/dome-docker/scripts/host-setup.sh)",
+      "Bash(chmod +x /Users/pitosalas/mydev/dome-docker/tests/test_f05_dome_mode.sh)",
+      "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f05_dome_mode.sh)",
+      "Bash(sed -i '' -e 's/^\\\\*\\\\*Done:\\\\*\\\\* no$/**Done:** yes/' -e 's/^\\\\*\\\\*Tests Written:\\\\*\\\\* no$/**Tests Written:** yes/' -e 's/^\\\\*\\\\*Test Passing:\\\\*\\\\* no$/**Test Passing:** yes/' 03-features/done/f05-dome-mode-native-docker.md)",
+      "Bash(sed -i '' 's/^\\\\*\\\\*Status\\\\*\\\\*: not done$/**Status**: done/' 04-tasks/done/TF05-dome-mode-native-docker.md)"
     ]
   }
 }

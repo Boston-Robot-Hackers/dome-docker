@@ -232,6 +232,14 @@ sudo apt-get update
 sudo scripts/bare-metal-base.sh
 ```
 
+**`host-setup.sh` fails: "Network is not ready: no route to the internet."**
+— wlan0 DHCP not up yet at boot (race condition right after `sudo reboot` /
+fresh flash). Wait a few seconds, verify, then re-run:
+```sh
+ip route get 1.1.1.1   # should print a route, not an error
+sudo --preserve-env=DOME_USER,DOME_PASSWORD scripts/host-setup.sh
+```
+
 **`ERROR: failed to clone <private-repo>`** — SSH key not available to sudo:
 ```sh
 eval "$(ssh-agent -s)"

@@ -97,7 +97,17 @@ See **[howto.md](howto.md) → Flash the microSD**.
 
 See **[howto.md](howto.md) → First boot**.
 
-After cloning and creating `manifest/user.txt`, run host setup — installs Docker, creates Pi user, configures udev, installs `dome.service`:
+This is the one line where Scenario 3 (Docker) diverges from Scenario 1 —
+both default to `DOME_TARGET=pi` since both flash a Pi microSD, but only
+this scenario needs Docker. Add `DOME_MODE=docker` to the `manifest/user.txt`
+you just created on the Pi:
+
+```sh
+echo 'DOME_MODE=docker' >> manifest/user.txt
+cat manifest/user.txt
+```
+
+After that, run host setup — installs Docker, creates Pi user, configures udev, installs `dome.service`:
 
 ```sh
 export DOME_PASSWORD=yourpassword

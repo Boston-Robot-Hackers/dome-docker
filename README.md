@@ -109,7 +109,7 @@ package names, URLs, build flags, or directory lists — those all live here.
 
 | File | Owns |
 |---|---|
-| `config.txt` | ROS_DISTRO, UBUNTU_CODENAME, DOME_USER, DOME_TARGET, SWAP_SIZE_MB defaults |
+| `config.txt` | ROS_DISTRO, UBUNTU_CODENAME, DOME_USER, DOME_TARGET, SWAP_SIZE_MB, DOME_MODE defaults |
 | `packages.txt` | apt and ROS packages |
 | `pip.txt` | pip3 packages |
 | `repos.txt` | git repos to clone |
