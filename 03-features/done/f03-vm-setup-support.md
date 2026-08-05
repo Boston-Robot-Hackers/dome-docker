@@ -2,7 +2,7 @@
 ## F03 — Support VMware/generic VM as a bare-metal-build target, not just Raspberry Pi
 
 **Priority**: Medium
-**Done:** no
+**Done:** yes
 **Tasks File Created:** yes
 **Tests Written:** yes
 **Test Passing:** yes

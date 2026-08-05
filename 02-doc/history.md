@@ -1,0 +1,116 @@
+# Session History
+
+Completed-session log, moved out of `02-doc/current.md` to keep that file
+focused on latest status and open context. Most recent first.
+
+## 2026-08-05 — F05 DOME_MODE native|docker; F03 T10 completed, F03 closed
+
+- Live Pi bring-up (`pi-howto.md`, Scenario 1) hit two real bugs in
+  `host-setup.sh`: (1) transient DNS failure resolving `github.com` mid-run,
+  caused by `needrestart` bouncing `systemd-resolved.service` right before
+  the ReSpeaker overlay `git clone` — not a real network outage, resolved by
+  re-running; noted in `02-doc/pi-howto.md` Troubleshooting. (2) Real bug:
+  `host-setup.sh` unconditionally installed Docker and enabled `dome.service`
+  (`docker compose run --rm dome`) regardless of scenario — Scenarios 1
+  (Pi-native) and 2 (VM-native) never use Docker, but `DOME_TARGET=pi` alone
+  can't distinguish Scenario 1 from Scenario 3 (both default to
+  `DOME_TARGET=pi`, only Scenario 3 needs Docker).
+- New feature `F05`/`TF05`: added `DOME_MODE=native|docker` to
+  `manifest/config.txt` (default `native`, same env > `user.txt` >
+  `config.txt` precedence as `DOME_TARGET`). Gated the Docker apt-repo
+  setup/install/enable and the `dome.env`/`dome.service` templating block in
+  `host-setup.sh` behind `DOME_MODE=docker`; native mode now prints a
+  one-line skip instead. `docker-howto.md` Step 4 updated to tell
+  Scenario-3 users to add `DOME_MODE=docker` to the Pi's `manifest/user.txt`.
+  `README.md` manifest table updated.
+- `tests/test_f05_dome_mode.sh` added (7 tests: config default, script
+  references, syntax, and stubbed behavior tests confirming native mode
+  makes zero Docker/dome.service calls and docker mode makes them).
+- Full suite passes: 59+43+28+12+7 = 149 passed, 0 failed.
+- F05 feature + TF05 task file moved to `done/`.
+- Chore: `host-setup.sh`'s final "log out and back in for docker group
+  membership" message ran unconditionally, even under `DOME_MODE=native`
+  where no docker group is ever added — fixed to only mention it when
+  `DOME_MODE=docker`.
+- **F03 T10 completed**: live Pi bring-up continued through the full chain —
+  `host-setup.sh` (confirming F05's native-mode skip), `bare-metal-base.sh`
+  (completed clean), `bare-metal-build.sh` (completed, surfaced a real
+  cross-repo bug below). User separately re-confirmed the `DOME_TARGET=vm`
+  path still works. T10 marked done, F03/TF03 moved to `done/` — no open
+  features remain.
+- Found (not fixed here — separate repo): `Boston-Robot-Hackers/dome_vision`'s
+  `dome_vision/dome_vision/pyproject.toml` (package `oak-roboflow`) declares
+  unpinned `numpy` and a duplicate `opencv-python`. `colcon build`'s
+  per-package `pip install .` doesn't share `bare-metal-base.sh`'s combined
+  resolver context, so it silently upgraded numpy to 2.5.1, breaking
+  `depthai-sdk`'s hard `numpy<2.0.0` requirement, and installed a second,
+  conflicting OpenCV wheel alongside the manifest's `opencv-contrib-python`.
+  Gave the user a fix prompt to run against the `dome_vision` repo directly
+  (pin `numpy<2`, drop `opencv-python`) — out of scope for `dome-docker` itself.
+- Added `git@github.com:Boston-Robot-Hackers/j3.git` (dest `j3`) to
+  `manifest/repos.txt` `[root]` — clones straight into `$DOME_HOME`, per
+  explicit user request.
+
+## 2026-08-04 — F04 Pi swap config
+
+- New feature `F04`/`TF04`: `SWAP_SIZE_MB` config key in `manifest/config.txt`
+  (default `2048`, same env > `user.txt` > `config.txt` precedence as
+  `DOME_TARGET`), Pi-only swapfile step added to `bare-metal-base.sh`
+  (`fallocate`/`mkswap`/`swapon`/`/etc/fstab`, idempotent, `SWAP_SIZE_MB=0`
+  disables). Motivated by `colcon build` OOM risk on 4GB Pi5 boards since
+  `manifest/colcon.txt` sets no parallel-job cap.
+- `tests/test_f04_pi_swap.sh` added (12 tests, mocked disk/swap ops — no real
+  `fallocate`/`mkswap`/`swapon` calls in the test run).
+- Docs updated: `README.md` manifest table, `02-doc/pi-howto.md` (new
+  `SWAP_SIZE_MB` note near the `manifest/user.txt` section).
+- Full suite passes: 59+43+28+12 = 142 passed, 0 failed.
+- F04 feature + TF04 task file moved to `done/`.
+- Live-verified on a real Pi: `bare-metal-base.sh` created/activated
+  `/swapfile`, confirmed by user.
+
+## 2026-08-03 — Pi bring-up, doc restructure
+
+- Copied `.claude/` from `mydev/j3` over dome-docker's, replacing
+  bootstrap/literate/process/style_guide/templates/commands/settings.json;
+  kept dome-docker's own `settings.local.json` (had uncommitted local
+  permission grants).
+- README was confusing about where to start for a Pi microSD install — its
+  "Local Configuration" section read as a universal first step but is
+  actually Docker-only. Fixed by adding a scenario-routing "Getting Started"
+  section up top.
+- Bigger restructure per explicit user request: `02-doc/shell-howto.md`
+  (interleaved Pi/VM steps with Primary/Target + Pi:/VM: tags every step)
+  was confusing — split into single-thread `02-doc/pi-howto.md` and
+  `02-doc/vm-howto.md`, each self-contained start to finish, repeating
+  shared steps rather than cross-referencing. `shell-howto.md` deleted;
+  `README.md`/`02-doc/howto.md`/`02-doc/docker-howto.md` cross-refs updated.
+- Live Pi bring-up: DNS resolution failure on `curl -sSL` (mcfly install)
+  — transient, resolved by fixing target's DNS. Re-running
+  `bare-metal-base.sh` after a DNS fix is safe (idempotent, apt/pip skip
+  fast on already-satisfied state).
+- Investigated "`dome_nav` missing from `~/ros2_ws/src`" — traced to
+  `manifest/repos.txt` having local, uncommitted additions (`dome_mission`,
+  `dome_nav`, `dome_nav_msgs`, `dome_semantic`, `dome_semantic_msgs`,
+  `metawtf`) and a removal (`camera_ros`) that the Pi's checkout, cloned
+  from GitHub, never received — not a script bug. Resolves once pushed and
+  `git pull`ed on the Pi.
+- `/checkpoint` caught a real regression before it shipped:
+  `manifest/colcon.txt`'s `flags` field was deleted (user intentionally
+  switched off `--symlink-install` for full installs), but
+  `bare-metal-build.sh` hard-required `flags` to be non-empty and would
+  have errored out at the colcon-build step on every target. Fixed the
+  script (empty `flags` is now valid) and the test assertion; full test
+  suite passes (47+43+28, 0 failed).
+- All fixes logged in `04-tasks/chores.md` (bug-fix chores don't need
+  feature/task files per process.md).
+
+## 2026-07-23 — bugs found live during T10 VM bring-up
+
+- `scripts/dome-config.sh`: resolved `manifest/` one level above the repo root when `source`d under zsh (`BASH_SOURCE` not populated by zsh on plain `source`). Fixed to resolve from `$(pwd)`; regression test added.
+- `scripts/host-setup.sh`: resolved `DOME_USER` as `root` — only read the env var, never `manifest/user.txt`, so under `sudo` (`$USER=root`) it computed the wrong home dir and manifest lookup failed. Fixed to use env > user.txt > config precedence, matching other scripts.
+- `manifest/packages.txt` `[ros]`: had a bogus `dome-docker` entry (the repo's own name, introduced in an earlier commit with no rationale) — caused `apt-get install ros-kilted-dome-docker` to fail with package-not-found. Removed; regression test added guarding against this exact mistake recurring.
+- `scripts/host-setup.sh` now prints the target's global IPv4 addresses at the end of its run, so VM users (where `dome.local` mDNS often fails) don't have to find the IP externally.
+- `02-doc/shell-howto.md` (now split into `pi-howto.md`/`vm-howto.md`): fixed several real doc gaps found by walking the VM path live — never told VM users to set `DOME_TARGET=vm`; mixed the Primary/Target (which machine you type on) and Pi/VM (which hardware) label axes inconsistently; implied an SSH key needed to already be on the target when Step 5 is what puts it there; hardcoded `pitosalas`/`dome.local` in the scp commands instead of being generic; didn't note that VM users working in the console directly don't need SSH at all; Step 6 had users manually re-source ROS/workspace setup when `.bashrc` (installed by `bare-metal-build.sh`) already auto-sources `~/rosutils/ros2_robot_bashrc.bash` in every new shell — fixed to say "open a new terminal" instead.
+- Added `TARGET_USER`/`TARGET_HOST` env var convention so later `ssh`/`scp` commands don't need the username/address retyped each time.
+- Removed all time estimates ("10-30 min", "5-15 min", etc.) from docs and script echo/comments per explicit feedback — duration varies too much across Pi/VM/network to be meaningful.
+- Renamed the 3 howto doc headers to start with their filename (`README: Dome Docker`, `Howto: Dome Docker Scenarios`, `Shell Howto: ...`, `Docker Howto: ...`) per explicit convention request.
