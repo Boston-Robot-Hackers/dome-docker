@@ -19,6 +19,7 @@ git@github.com:Boston-Robot-Hackers/dome_nav.git dome_nav
 git@github.com:Boston-Robot-Hackers/dome_nav_msgs.git dome_nav_msgs
 git@github.com:Boston-Robot-Hackers/dome_semantic.git dome_semantic
 git@github.com:Boston-Robot-Hackers/dome_semantic_msgs.git dome_semantic_msgs
+git@github.com:Boston-Robot-Hackers/dome_telemetry.git dome_telemetry
 git@github.com:Boston-Robot-Hackers/dome_vision.git dome_vision
 git@github.com:Boston-Robot-Hackers/dome_voice.git dome_voice
 git@github.com:Boston-Robot-Hackers/explore.git explore
