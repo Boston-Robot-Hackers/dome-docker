@@ -41,8 +41,9 @@
       "Bash(bash -n /Users/pitosalas/mydev/dome-docker/scripts/host-setup.sh)",
       "Bash(chmod +x /Users/pitosalas/mydev/dome-docker/tests/test_f05_dome_mode.sh)",
       "Bash(bash /Users/pitosalas/mydev/dome-docker/tests/test_f05_dome_mode.sh)",
-      "Bash(sed -i '' -e 's/^\\\\*\\\\*Done:\\\\*\\\\* no$/**Done:** yes/' -e 's/^\\\\*\\\\*Tests Written:\\\\*\\\\* no$/**Tests Written:** yes/' -e 's/^\\\\*\\\\*Test Passing:\\\\*\\\\* no$/**Test Passing:** yes/' 03-features/done/f05-dome-mode-native-docker.md)",
-      "Bash(sed -i '' 's/^\\\\*\\\\*Status\\\\*\\\\*: not done$/**Status**: done/' 04-tasks/done/TF05-dome-mode-native-docker.md)"
+      "Bash(sed -i '' 's/^\\\\*\\\\*Status\\\\*\\\\*: not done$/**Status**: done/' 04-tasks/done/TF05-dome-mode-native-docker.md)",
+      "Read(//Users/pitosalas/.claude/**)",
+      "Bash(git log *)"
     ]
   }
 }
