@@ -63,8 +63,8 @@ Install git and clone:
 
 ```sh
 sudo apt update && sudo apt install -y git ca-certificates
-git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
-cd ~/dome-docker
+git clone https://github.com/Boston-Robot-Hackers/provision_dome.git ~/provision_dome
+cd ~/provision_dome
 ```
 
 Create `manifest/user.txt` (gitignored — stays local):

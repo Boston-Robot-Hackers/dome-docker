@@ -29,12 +29,12 @@ users:
 #       #!/usr/bin/env bash
 #       set -euo pipefail
 #
-#       if [[ ! -d /home/REPLACE_WITH_HOST_USER/dome-docker ]]; then
-#         git clone REPLACE_WITH_REPO_URL /home/REPLACE_WITH_HOST_USER/dome-docker
+#       if [[ ! -d /home/REPLACE_WITH_HOST_USER/provision_dome ]]; then
+#         git clone REPLACE_WITH_REPO_URL /home/REPLACE_WITH_HOST_USER/provision_dome
 #       fi
 #
-#       chown -R REPLACE_WITH_HOST_USER:REPLACE_WITH_HOST_USER /home/REPLACE_WITH_HOST_USER/dome-docker
-#       cd /home/REPLACE_WITH_HOST_USER/dome-docker
+#       chown -R REPLACE_WITH_HOST_USER:REPLACE_WITH_HOST_USER /home/REPLACE_WITH_HOST_USER/provision_dome
+#       cd /home/REPLACE_WITH_HOST_USER/provision_dome
 #       DOME_USER=REPLACE_WITH_HOST_USER DOME_PASSWORD= ./host-setup.sh
 #
 # runcmd:

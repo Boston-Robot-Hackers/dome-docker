@@ -5,14 +5,14 @@
 # not this script's path, since BASH_SOURCE isn't reliably set when sourced
 # under zsh):
 #
-#   cd ~/dome-docker
+#   cd ~/provision_dome
 #   nano manifest/user.txt   # set DOCKERHUB_USERNAME and DOME_USER
 #   source scripts/dome-config.sh
 
 _MANIFEST_DIR="$(pwd)/manifest"
 if [[ ! -f "${_MANIFEST_DIR}/config.txt" ]]; then
     echo "ERROR: ${_MANIFEST_DIR}/config.txt not found." >&2
-    echo "Source this file from the repo root: cd ~/dome-docker && source scripts/dome-config.sh" >&2
+    echo "Source this file from the repo root: cd ~/provision_dome && source scripts/dome-config.sh" >&2
     return 1
 fi
 
@@ -47,7 +47,7 @@ export DOME_BASE_IMAGE="${DOME_BASE_IMAGE:-docker.io/${_DOCKERHUB_USERNAME}/dome
 export DOME_IMAGE="${DOME_IMAGE:-docker.io/${_DOCKERHUB_USERNAME}/dome-docker:dome-${_ROS_DISTRO}}"
 
 # Repository URL for cloning this public setup repo onto a fresh Pi.
-export DOME_DOCKER_REPO_URL="${DOME_DOCKER_REPO_URL:-https://github.com/Boston-Robot-Hackers/dome-docker.git}"
+export DOME_DOCKER_REPO_URL="${DOME_DOCKER_REPO_URL:-https://github.com/Boston-Robot-Hackers/provision_dome.git}"
 
 # SSH key settings used during Docker builds.
 export DOME_SSH_KEY="${DOME_SSH_KEY:-${HOME}/.ssh/id_ed25519}"

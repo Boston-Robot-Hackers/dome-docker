@@ -152,7 +152,7 @@ else
 fi
 
 if [[ "${DOME_MODE}" == "docker" ]]; then
-  DOME_DIR="/home/${USERNAME}/dome-docker"
+  DOME_DIR="/home/${USERNAME}/provision_dome"
   mkdir -p \
     "${DOME_DIR}/runtime-data/ros" \
     "${DOME_DIR}/runtime-data/control" \

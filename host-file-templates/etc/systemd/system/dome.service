@@ -5,8 +5,8 @@ Requires=docker.service
 
 [Service]
 User=@@DOME_USER@@
-WorkingDirectory=/home/@@DOME_USER@@/dome-docker
-EnvironmentFile=/home/@@DOME_USER@@/dome-docker/dome.env
+WorkingDirectory=/home/@@DOME_USER@@/provision_dome
+EnvironmentFile=/home/@@DOME_USER@@/provision_dome/dome.env
 ExecStartPre=/usr/bin/docker compose pull dome
 ExecStart=/usr/bin/docker compose run --rm dome
 Restart=on-failure

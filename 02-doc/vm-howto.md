@@ -44,8 +44,8 @@ from Primary (`ssh pitosalas@<vm-ip>` — note the IP first):
 
 ```sh
 sudo apt update && sudo apt install -y git ca-certificates
-git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
-cd ~/dome-docker
+git clone https://github.com/Boston-Robot-Hackers/provision_dome.git ~/provision_dome
+cd ~/provision_dome
 ```
 
 Create `manifest/user.txt` on the **VM** — this file is gitignored and must
@@ -102,14 +102,14 @@ If you're working directly in the VM's console window, no SSH needed — just
 wait for the reboot and continue there:
 
 ```sh
-cd ~/dome-docker
+cd ~/provision_dome
 ```
 
 Only reconnect over SSH if you're accessing the VM remotely from Primary:
 
 ```sh
 ssh "${TARGET_USER}@${TARGET_HOST}"
-cd ~/dome-docker
+cd ~/provision_dome
 ```
 
 ---
@@ -203,7 +203,7 @@ All commands below run on the **VM**.
 **Pull latest repo changes and rebuild:**
 
 ```sh
-cd ~/dome-docker
+cd ~/provision_dome
 git pull
 sudo scripts/bare-metal-build.sh   # re-clones changed repos, rebuilds workspace
 ```

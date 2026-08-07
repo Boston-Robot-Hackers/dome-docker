@@ -48,8 +48,8 @@ Clone the repo and enter it:
 
 ```sh
 sudo apt update && sudo apt install -y git ca-certificates
-git clone https://github.com/Boston-Robot-Hackers/dome-docker.git ~/dome-docker
-cd ~/dome-docker
+git clone https://github.com/Boston-Robot-Hackers/provision_dome.git ~/provision_dome
+cd ~/provision_dome
 ```
 
 Create `manifest/user.txt` on the **Pi** — this file is gitignored and must
@@ -109,7 +109,7 @@ SSH back in from Primary:
 
 ```sh
 ssh "${TARGET_USER}@${TARGET_HOST}"   # mDNS usually works for dome.local
-cd ~/dome-docker
+cd ~/provision_dome
 ```
 
 ---
@@ -200,7 +200,7 @@ All commands below run on the **Pi**.
 **Pull latest repo changes and rebuild:**
 
 ```sh
-cd ~/dome-docker
+cd ~/provision_dome
 git pull
 sudo scripts/bare-metal-build.sh   # re-clones changed repos, rebuilds workspace
 ```

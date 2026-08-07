@@ -24,7 +24,7 @@ container runs on Pi. VMs use the bare-metal path instead (`vm-howto.md`).
 Edit `manifest/user.txt` (gitignored, stays local):
 
 ```sh
-cd ~/mydev/dome-docker
+cd ~/mydev/provision_dome
 nano manifest/user.txt
 ```
 
@@ -129,7 +129,7 @@ SSH back in after reboot:
 
 ```sh
 ssh pitosalas@dome.local
-cd ~/dome-docker
+cd ~/provision_dome
 ```
 
 Log in to Docker Hub (image is private):
