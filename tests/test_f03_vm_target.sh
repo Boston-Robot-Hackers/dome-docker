@@ -74,9 +74,13 @@ grep -q 'pip-pi' "${REPO_DIR}/Dockerfile.base" \
 grep -q 'clone_section root-pi' "${REPO_DIR}/Dockerfile" \
     && pass "Dockerfile clones [root-pi]" || fail "Dockerfile missing [root-pi] clone"
 
-echo "--- README documents VM setup ---"
-grep -q 'DOME_TARGET=vm' "${REPO_DIR}/README.md" \
-    && pass "README.md documents DOME_TARGET=vm" || fail "README.md missing DOME_TARGET=vm"
+echo "--- VM setup is documented ---"
+# README is end-user facing and deliberately names no config flags; it must
+# route users to the VM guide, and the guide must document the flag itself.
+grep -q 'vm-howto.md' "${REPO_DIR}/README.md" \
+    && pass "README.md points to the VM guide" || fail "README.md missing vm-howto.md link"
+grep -q 'DOME_TARGET=vm' "${REPO_DIR}/02-doc/vm-howto.md" \
+    && pass "vm-howto.md documents DOME_TARGET=vm" || fail "vm-howto.md missing DOME_TARGET=vm"
 
 echo ""
 echo "=== Results: ${PASS} passed, ${FAIL} failed ==="

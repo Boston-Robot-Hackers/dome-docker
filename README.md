@@ -1,135 +1,152 @@
-# README: Dome Docker
+# provision_dome
 
-Automation and runbooks for building a ROS 2 environment. Three scenarios:
+Sets up a Dome robot from scratch.
 
-1. **Raspberry Pi, microSD** — flash a card, install ROS natively (`DOME_TARGET=pi`, default)
-2. **VM, bare Ubuntu 24.04 already installed** — same native install, no Pi hardware (`DOME_TARGET=vm`)
-3. **Docker** — build on Mac, push to Docker Hub, run as container on a Pi
+Start with a blank microSD card and a Raspberry Pi; end with a Pi running
+ROS 2 with all the Dome robot software installed, built, and ready to run.
+You follow one guide start to finish and the scripts do the rest — there is
+no code to write and nothing to configure by hand beyond your username.
 
-Scenarios 1 and 2 share the same bare-metal scripts and differ only in
-`DOME_TARGET` (see [Setting Up A Development VM](#setting-up-a-development-vm)).
-Scenario 3 is Pi-only. All three read from the same `manifest/` directory —
-single source of truth for all packages, repos, build flags, and configuration.
+You can also set up a virtual machine instead of a Pi, if you want to work
+on the software without robot hardware in front of you.
 
-## Getting Started
+---
 
-Pick your scenario, then follow that guide start to finish — each is a
-single, self-contained thread, no scenario-switching mid-document:
+## What you end up with
 
-- **Scenario 1 — Pi, microSD:** `02-doc/pi-howto.md`
-- **Scenario 2 — VM, bare Ubuntu 24.04:** `02-doc/vm-howto.md`
-- **Scenario 3 — Docker:** `02-doc/docker-howto.md` (covers **Local
-  Configuration** below as part of its own Step 1)
+- **ROS 2 Kilted** on Ubuntu 24.04, installed and configured
+- **The Dome robot packages** — navigation, vision, voice, control, mission
+  — cloned and compiled into a ROS workspace at `~/ros2_ws`
+- **Robot hardware configured** — camera, lidar, microphone array, and the
+  USB device names the software expects
+- **A shell that just works** — open a terminal and `ros2` commands are
+  ready, with the workspace already sourced
 
-See `02-doc/howto.md` for the full scenario comparison table.
+Setup takes a while, mostly compiling. Times vary too much across hardware
+and network speed to give a useful number.
 
-## Local Configuration
+---
 
-**Docker scenario only** — scenarios 1 and 2 create `manifest/user.txt` on
-the target machine instead, as part of their own guide's Step 2.
+## Which setup do I want?
 
-Create `manifest/user.txt` (gitignored — never commit this):
+| | Use this when |
+|---|---|
+| **Raspberry Pi** | You have a Pi and want a working robot. This is the normal choice. |
+| **Virtual machine** | You want to develop without Pi hardware. No camera, lidar, or motors. |
+| **Docker** | You want the robot to run from a prebuilt container image instead of a local install. Requires a Mac to build the image. |
+
+Then follow that guide from top to bottom. Each one is self-contained — you
+never need to jump between them.
+
+- **Raspberry Pi** → [`02-doc/pi-howto.md`](02-doc/pi-howto.md)
+- **Virtual machine** → [`02-doc/vm-howto.md`](02-doc/vm-howto.md)
+- **Docker** → [`02-doc/docker-howto.md`](02-doc/docker-howto.md)
+
+Undecided? [`02-doc/howto.md`](02-doc/howto.md) compares them side by side.
+
+---
+
+## What you need before you start
+
+**For a Raspberry Pi setup:**
+
+- Raspberry Pi 4 or 5
+- microSD card, 16 GB or larger, and a card reader
+- [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your
+  computer
+- A GitHub SSH key, for the private robot repositories
+
+**For a VM setup:**
+
+- Ubuntu **24.04 (noble)** specifically, already installed. Other Ubuntu
+  releases fail partway through with confusing package errors.
+- A GitHub SSH key
+
+---
+
+## Everyday use
+
+Once you are set up, these are the things you will actually do.
+
+**Get the latest robot code:**
 
 ```sh
-printf 'DOME_USER=yourname\nDOCKERHUB_USERNAME=your-dockerhub-username\nDOME_PASSWORD=yourpassword\n' > manifest/user.txt
-cat manifest/user.txt
+cd ~/provision_dome
+git pull
+sudo scripts/bare-metal-build.sh
 ```
 
-Then source the config before any Docker build or compose command:
+Open a new terminal afterward so the rebuilt workspace is picked up.
+
+**Add a software package** — add its name to `manifest/packages.txt` (system
+packages) or `manifest/pip.txt` (Python packages), then:
 
 ```sh
-source scripts/dome-config.sh
+sudo scripts/bare-metal-base.sh
 ```
 
-## Running Tests
-
-Verify manifest files are complete and Dockerfiles contain no hardcoded values:
+**Add a robot repository** — add it to `manifest/repos.txt`, then:
 
 ```sh
-bash tests/test_f01_manifest.sh
+sudo scripts/bare-metal-build.sh
 ```
 
-## Optional Large Dependencies
+These three files are the ones you edit. You should not need to modify any
+script.
 
-Install on demand inside the container:
+---
+
+## Optional extras
+
+Two large downloads are left out of the default setup because most people do
+not need them. Install either on demand:
 
 ```sh
-install-optional-deps.sh           # all optional deps
-install-optional-deps.sh torch     # torch + torchvision (~1 GB) — dome_vision ML
-install-optional-deps.sh piper     # piper TTS + voice model (~110 MB) — dome_voice speech
+install-optional-deps.sh torch     # ~1 GB   — machine learning for dome_vision
+install-optional-deps.sh piper     # ~110 MB — speech output for dome_voice
+install-optional-deps.sh           # both
 ```
 
-Safe to re-run. `torch` first install takes noticeably longer than a re-run.
+Safe to re-run.
 
-## Runtime Data
+---
 
-Container volume mounts that persist across restarts:
+## If something goes wrong
 
-- `runtime-data/ros/` → `~/.ros`
-- `runtime-data/control/` → `~/.control`
-- `runtime-data/dome/` → `~/.dome`
-- `runtime-data/config/` → `~/.config`
+Each guide ends with a Troubleshooting section covering the failures people
+actually hit — network not ready, SSH key not found, build errors.
 
-## Security Notes
+**Set up your Pi or VM before this repo was renamed?** It was previously
+called `dome-docker`. Pulling the rename without renaming your local copy
+breaks your shell. Both guides have a *Migrating* section with the fix.
 
-Never commit `manifest/user.txt`, `.env` files, private keys, Wi-Fi credentials,
-or netplan files with passwords. Reviewed local copies go in `host-files/` (gitignored).
+---
 
-Removing secrets from the current tree does not remove them from git history.
-Before publishing, rewrite or recreate history if it ever contained secrets.
+## Keep your secrets out of git
 
-## Repository Layout
+Never commit `manifest/user.txt`, `.env` files, private keys, Wi-Fi
+credentials, or netplan files containing passwords. `manifest/user.txt` is
+already ignored by git — keep it that way.
 
-### scripts/
+Deleting a secret from the current files does **not** remove it from git
+history. If something sensitive was ever committed, rewrite the history
+before sharing the repository.
 
-| Script | Purpose |
-|---|---|
-| `scripts/bare-metal-base.sh` | Install ROS + all packages on Pi from manifest. Run as root. |
-| `scripts/bare-metal-build.sh` | Clone repos, rosdep, colcon build on Pi from manifest. Run as root. |
-| `scripts/host-setup.sh` | Provision Pi host: Docker, user, udev, boot firmware, dome.service. |
-| `scripts/dome-config.sh` | Source to set `DOME_USER`, `DOME_IMAGE`, etc. from manifest. |
-| `scripts/mac-build-base.sh` | Build and push base Docker image (Mac, cross-compile). |
-| `scripts/mac-build-overlay.sh` | Build and push overlay Docker image (Mac, cross-compile). |
-| `scripts/collect-inventory.sh` | Snapshot installed packages on live Pi to `inventory/`. |
-| `scripts/install-optional-deps.sh` | Install large optional deps (torch, piper) inside container. |
-| `scripts/docker-entrypoint.sh` | Sources ROS and workspace overlays before exec. |
+---
 
-### Dockerfiles
+## Under the hood
 
-| File | Purpose |
-|---|---|
-| `Dockerfile.base` | Reusable ROS base image — apt/pip/curl packages from manifest. |
-| `Dockerfile` | Overlay image — repo clones, colcon build, user setup. |
-| `compose/compose.yaml` | Runs container with host networking and device access. |
+You do not need any of this to use the robot, but if you are modifying how
+setup works:
 
-### manifest/
+- [`02-doc/notes.md`](02-doc/notes.md) — design decisions and why things are
+  built the way they are
+- [`02-doc/manifest-format.md`](02-doc/manifest-format.md) — file formats for
+  everything in `manifest/`
+- [`02-doc/current.md`](02-doc/current.md) — what is in progress right now
+- `tests/` — run `bash tests/test_f01_manifest.sh` to check the
+  configuration files are intact
 
-All build configuration. Neither Dockerfiles nor bare-metal scripts contain
-package names, URLs, build flags, or directory lists — those all live here.
-
-| File | Owns |
-|---|---|
-| `config.txt` | ROS_DISTRO, UBUNTU_CODENAME, DOME_USER, DOME_TARGET, SWAP_SIZE_MB, DOME_MODE defaults |
-| `packages.txt` | apt and ROS packages |
-| `pip.txt` | pip3 packages |
-| `repos.txt` | git repos to clone |
-| `apt-repos.txt` | third-party apt repositories (Doppler, GitHub CLI, VS Code) |
-| `tools.txt` | curl-installed tools (mcfly) |
-| `colcon.txt` | colcon build flags and skip list |
-| `rosdep.txt` | rosdep install skip keys |
-| `dirs.txt` | home subdirectory structure |
-| `bashrc` | container shell environment |
-| `lib.sh` | shared manifest parsing helpers |
-| `user.txt` | **gitignored** — personal overrides (DOME_USER, DOCKERHUB_USERNAME, DOME_PASSWORD) |
-
-See `02-doc/manifest-format.md` for format details on each file.
-
-### Other directories
-
-| Directory | Purpose |
-|---|---|
-| `02-doc/` | Documentation, architecture notes, current status |
-| `host-file-templates/` | Sanitized templates for Pi host files (boot firmware, udev, netplan) |
-| `runtime-data/` | Container volume mounts — persists across restarts (gitignored except subdirs) |
-| `tests/` | Test scripts — run `bash tests/test_f01_manifest.sh` to verify manifest integrity |
-| `inventory/` | Live Pi package snapshot from `collect-inventory.sh` (gitignored) |
+The short version: everything that varies — packages, repositories, build
+flags, directory layout — lives in `manifest/`. The scripts read it and act
+on it, and contain no such values themselves.

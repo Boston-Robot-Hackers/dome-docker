@@ -222,9 +222,50 @@ sudo scripts/bare-metal-build.sh   # clones new repo, rebuilds
 
 ---
 
+## Migrating A Pi Set Up Before The Repo Rename
+
+This repo was renamed from `dome-docker` to `provision_dome`. A Pi
+provisioned under the old name needs two manual steps — **a `git pull` alone
+is not enough and will break your shell**.
+
+Rename the checkout and pull:
+
+```sh
+cd ~ && mv dome-docker provision_dome
+cd ~/provision_dome && git pull
+```
+
+Then refresh `~/.bashrc`. This is the step people miss: `manifest/bashrc` is
+a *template* that only reaches `~/.bashrc` when `bare-metal-build.sh` copies
+it, so pulling updates the template and leaves your actual shell config
+pointing at the old path:
+
+```sh
+cp ~/provision_dome/manifest/bashrc ~/.bashrc
+```
+
+Verify in a **new** SSH session:
+
+```sh
+echo "$ROS_DISTRO"          # expect: kilted
+ros2 pkg list | grep -c dome
+```
+
+`cp` overwrites wholesale, matching what `bare-metal-build.sh` does. If you
+hand-edited `~/.bashrc` on this Pi, diff it first — the repo path should be
+the only difference.
+
+---
+
 ## Troubleshooting
 
 All commands below run on the **Pi** unless noted.
+
+**New shells fail with `/opt/ros//setup.bash: No such file or directory`**
+(note the empty path segment) — `~/.bashrc` points at a directory that no
+longer exists, almost always because this Pi predates the `dome-docker` →
+`provision_dome` rename. See *Migrating A Pi Set Up Before The Repo Rename*
+above.
 
 **`bare-metal-base.sh` fails on apt-get** — network issue or stale cache:
 ```sh
